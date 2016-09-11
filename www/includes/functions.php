@@ -85,6 +85,8 @@
 		}
 
 		$db->commit();
+
+		lock_release();
 	}
 
 	function lock_list_for_update() {
@@ -117,5 +119,11 @@
 		}
 
 		return false;
+	}
+
+	function lock_release() {
+		global $db;
+		$db->query('UPDATE factorioservers_config SET locked_by = "nobody"')
+			or die('Database error 589231');
 	}
 
