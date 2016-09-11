@@ -3,6 +3,7 @@ body {
 	background-color: #262626;
 	box-shadow: 0 0 60px 0 #000 inset;
 	margin: 0;
+	background-image: url('bg.jpg') !important;
 }
 
 #wrapper {
@@ -10,12 +11,12 @@ body {
 	margin-right: auto;
 	width: 800px;
 	padding-top: 20px;
-	padding-bottom: 40px;
+	padding-bottom: 80px;
 }
 
 header {
 	position: relative;
-	background: linear-gradient(to bottom, #252525, #404040);
+	background: linear-gradient(to bottom, #252525, #404040) !important;
 	box-shadow: 0 4px 2px -2px #404040;
 	font-family: sans;
 	font-size: 34pt;
@@ -38,7 +39,7 @@ header section p {
 	margin-bottom: 0px;
 }
 
-header section a {
+a {
 	color: #d89954;
 }
 
@@ -56,5 +57,11 @@ header section a {
 
 #search div {
 	display: inline-block;
+}
+
+footer {
+	color: #ccc;
+	font-size: 11pt;
+	font-family: serif;
 }
 

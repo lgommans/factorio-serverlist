@@ -13,20 +13,17 @@
 		<div id=wrapper>
 			<header class=part>
 				<section>
-					<p><a href="https://github.com/lgommans/factorio-serverlist" onclick="about(); return false">About this site</a></p>
+					<p><a href="#footer">About this site</a></p>
 					<p><a href="https://www.factorio.com">www.factorio.com</a></p>
 				</section>
 				<img src="res/factorio-logo.png" alt="Factorio"><br>
 				<span class=title>Server List</span> <span class=unofficial>(unofficial)</span>
 			</header>
-			<article id=about class=part>
-				This is yet to write. For now, see
-				<a href="https://github.com/lgommans/factorio-serverlist">Github</a>.
-			</article>
-			<nav id=search class=part>
+
+			<nav id=filters class=part>
 				<div>
 					<strong>Search</strong>
-					<input id=search size=40> <i>searches all fields</i>
+					<input id=search size=40 placeholder="0.14.5 airplane 1.0.7"> <i>searches all fields</i>
 				</div>
 				<div>
 					<strong>Hide mods</strong>
@@ -34,10 +31,31 @@
 					<input type=checkbox id=nomods> hide all mods
 				</div>
 			</nav>
+
 			<section id=status class=part>
 				Loading page...
 			</section>
+
 			<main id=servers class=part></main>
+
+			<footer class=part id=footer> <!-- id added for the fragmentIdentifier #footer -->
+				<h3>About this website</h3>
+				This website is made by Luc Gommans ('luc' online, on forums and on wiki). It uses
+				the reverse engineered Factorio API with informal permission from Oxyd. The data
+				remains copyright Wube Software. This software is available under the MIT license on
+				<a href="https://github.com/lgommans/factorio-serverlist" target="_blank">Github</a>.
+
+				<h3>Credits and copyrights</h3>
+				<p>
+					The background image is a modified version of
+					<a href="https://us2.factorio.com/assets/img/screenshots/screenshot-14.jpg" target="_blank">this screenshot</a>,
+					found <a href="https://www.factorio.com/screenshots" target="_blank">here</a>.
+				</p>
+				<p>
+					Flags are public domain, taken from
+					<a href="http://famfamfam.com/lab/icons/flags/" target="_blank">famfamfam.com</a>.
+				</p>
+			</footer>
 		</div>
 
 		<script src="res/serverlist.js"></script>

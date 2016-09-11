@@ -21,7 +21,100 @@ function aGET(uri, callback, errorCallback) {
 	}
 }
 
+function searchFilter(server) {
+	// Returns true if current search setting would hide this server
+	if ($("#search").value == '') {
+		return false;
+	}
+
+	var searchable = server.name
+		+ server.description;
+		+ (server.application_version ? server.application_version.game_version : '')
+		+ server.game_id.toString()
+		+ server.host_address;
+
+	if (server.tags) {
+		for (var i in server.tags) {
+			searchable += server.tags[i];
+		}
+	}
+
+	if (server.players) {
+		for (var i in server.players) {
+			searchable += server.players[i];
+		}
+	}
+
+	if (server.mods) {
+		for (var i in server.mods) {
+			searchable += server.mods[i].name + " " + server.mods[i].version;
+		}
+	}
+
+	var q = $("#search").value.split(/ /g);
+	for (var i in q) {
+		if (q[i] == '') continue;
+		if (searchable.indexOf(q[i]) != -1) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+function modFilter(server) {
+	// Returns true if current mod filter setting would hide this server
+	if ($("#nomods").checked) {
+		if (server.mods && server.mods.length < 2) {
+			return false;
+		}
+		return true;
+	}
+
+	if ($("#hidemods").value == '') {
+		return false;
+	}
+
+	var searchable = '';
+
+	if (server.mods) {
+		for (var i in server.mods) {
+			searchable += server.mods[i].name + " " + server.mods[i].version;
+		}
+	}
+
+	var query = $("#hidemods").value.split(/, ?/g);
+	for (var i in query) {
+		if (query[i] == '') continue;
+		if (searchable.indexOf(query[i]) != -1) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+function getServerHTML(server) {
+	// Returns the HTML to be rendered for this server
+
+	var html = '';
+	html += server.name + "<br>";
+	if (server.mods) {
+		for (var i in server.mods) {
+			html += server.mods[i].name + ", ";
+		}
+	}
+
+	html += "<hr>";
+
+	return html;
+}
+
 function updateDisplay() {
+	if (searchTimeout !== false) {
+		searchTimeout = false;
+	}
+
 	if (serverData === false) {
 		return; // Nothing to display.
 	}
@@ -31,13 +124,22 @@ function updateDisplay() {
 	}
 
 	var playersOnline = 0;
+	var html = '';
 
 	for (var i in serverData.servers) {
-		$("main").innerHTML += serverData.servers[i].name + "<br>";
-		if (serverData.servers[i].players) {
-			playersOnline += serverData.servers[i].players.length;
+		var server = serverData.servers[i];
+		
+		if (searchFilter(server)) continue;
+		if (modFilter(server)) continue;
+
+		html += getServerHTML(server);
+
+		if (server.players) {
+			playersOnline += server.players.length;
 		}
 	}
+
+	$("main").innerHTML = html;
 
 	var d = new Date(serverData.lastupdate * 1000);
 	var hour = d.getHours() < 10 ? "0" + d.getHours() : d.getHours();
@@ -45,7 +147,7 @@ function updateDisplay() {
 	var second = d.getSeconds() < 10 ? "0" + d.getSeconds() : d.getSeconds();
 
 	$("#status").innerHTML = 'Last update: ' + hour + ':' + minute + ":" + second
-		+ ' | players online: ' + playersOnline;
+		+ ' | players in shown servers: ' + playersOnline;
 }
 
 function error(data) {
@@ -75,11 +177,11 @@ function queueDisplayUpdate() {
 }
 
 serverData = false;
-searchTimeout = -1;
+searchTimeout = false;
 
-$("#search").onkeyup = $("#search").onchange = queueDisplayUpdate();
-$("#hidemods").onkeyup = $("#hidemods").onchange = queueDisplayUpdate();
-$("#nomods").onmouseup = $("#nomods").onchange = queueDisplayUpdate();
+$("#search").onkeyup = $("#search").onchange = queueDisplayUpdate;
+$("#hidemods").onkeyup = $("#hidemods").onchange = queueDisplayUpdate;
+$("#nomods").onmouseup = $("#nomods").onchange = queueDisplayUpdate;
 
 $("#status").innerHTML = "<strong>Loading data...</strong>";
 
