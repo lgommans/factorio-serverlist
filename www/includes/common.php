@@ -12,7 +12,7 @@
 	}
 
 	// Future improvement: don't run this query on *every* pageload. Unnecessary load.
-	$result = $db->query('SHOW TABLES LIKE "factorioservers_config"') or die('Database error 573.');
+	$result = $db->query('SHOW TABLES LIKE "factorioservers"') or die('Database error 573.');
 	if ($result->num_rows == 0) {
 		// Database tables not created
 		$create_statements = explode(';', file_get_contents('database_create.sql'));

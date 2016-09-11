@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset='utf-8'/>
+		<title>Factorio Serverlist</title>
+		<link rel=stylesheet href="res/style.css">
+	</head>
+	<body>
+		<noscript>
+			<h1>This page uses Javascript to dynamically search, filter and update the data.</h1>
+		</noscript>
+
+		<div id=wrapper>
+			<header class=part>
+				<section>
+					<p><a href="https://github.com/lgommans/factorio-serverlist" onclick="about(); return false">About this site</a></p>
+					<p><a href="https://www.factorio.com">www.factorio.com</a></p>
+				</section>
+				<img src="res/factorio-logo.png" alt="Factorio"><br>
+				<span class=title>Server List</span> <span class=unofficial>(unofficial)</span>
+			</header>
+			<article id=about class=part>
+				This is yet to write. For now, see
+				<a href="https://github.com/lgommans/factorio-serverlist">Github</a>.
+			</article>
+			<nav id=search class=part>
+				<div>
+					<strong>Search</strong>
+					<input id=search size=40> <i>searches all fields</i>
+				</div>
+				<div>
+					<strong>Hide mods</strong>
+					<input id=hidemods placeholder="bob, airplane, tanker">
+					<input type=checkbox id=nomods> hide all mods
+				</div>
+			</nav>
+			<section id=status class=part>
+				Loading page...
+			</section>
+			<main id=servers class=part></main>
+		</div>
+
+		<script src="res/serverlist.js"></script>
+	</body>
+</html>
