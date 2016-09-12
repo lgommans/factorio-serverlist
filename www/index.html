@@ -21,15 +21,28 @@
 			</header>
 
 			<nav id=filters class=part>
-				<div>
+				<section>
 					<strong>Search</strong>
-					<input id=search size=40 placeholder="0.14.5 airplane 1.0.7"> <i>searches all fields</i>
-				</div>
-				<div>
+					<input id=search size=40 placeholder="0.14.5 team challenge country:GB">
+					<i>searches all fields</i>
+				</section>
+				<section>
 					<strong>Hide mods</strong>
-					<input id=hidemods placeholder="bob, airplane, tanker">
-					<input type=checkbox id=nomods> hide all mods
-				</div>
+					<input id=hidemods size=25 placeholder="aircraft 1.0.7 boblogi"><div class=spacing></div>
+					<input type=checkbox id=nomods> hide all <div class=spacing></div>
+					<input type=number size=2 id=maxmodno> max. number of mods
+				</section>
+				<section>
+					<strong>Players</strong> <input type=number id=minPlayers value=0> or more
+				</section>
+				<!-- <section> I discovered none of them require user verification, actually.
+					<strong>User verification</strong>
+					<input type=checkbox id=hideUserVerif checked> allow
+				</section> -->
+				<section>
+					<strong>Password</strong>
+					<input type=checkbox id=passworded checked> hide passworded
+				</section>
 			</nav>
 
 			<section id=status class=part>
@@ -57,6 +70,21 @@
 				<p>
 					Flags are public domain, taken from
 					<a href="http://famfamfam.com/lab/icons/flags/" target="_blank">famfamfam.com</a>.
+					User icon is public domain, taken from 
+					<a href="https://pixabay.com/en/blank-profile-picture-mystery-man-973460/" target="_blank">pixabay.com</a>.
+					The connection icon is taken from 
+					<a href="http://downloadicons.net/connected-icon-61290" target="_blank">downloadicons.net</a>.
+					I can't find a license but it says "download free" everywhere, so it's probably
+					fine. The link icon is from
+					<a href="https://commons.wikimedia.org/wiki/File:Chain_link_icon.png" target="_blank">Mdowdell, Wikimedia</a>,
+					CC-BY-SA 3.0.
+					<!-- Turns out, no server has this turned on, so the icon is never visible.
+					The 'user verification' (customs) icon is by
+					<a href="https://icons8.com/">icons8</a>, CC-BY-ND (via
+					<a href="http://www.iconarchive.com/show/windows-8-icons-by-icons8/Travel-Customs-Officer-icon.html">iconarchive.com</a>). -->
+					The lock icon is from Grecor Črešnar, via <a href="https://thenounproject.com/term/password/385803/">thenounproject.com</a>, CC-BY. I removed the asterisks below the lock (stating
+					changes is a requirement).
+					The clock icon... I made that one, look ma! So that's MIT license.
 				</p>
 			</footer>
 		</div>

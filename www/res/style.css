@@ -4,6 +4,7 @@ body {
 	box-shadow: 0 0 60px 0 #000 inset;
 	margin: 0;
 	background-image: url('bg.jpg') !important;
+	font-family: sans;
 }
 
 #wrapper {
@@ -55,17 +56,79 @@ a {
 	margin-bottom: 10px;
 }
 
-#search div {
+nav section {
 	display: inline-block;
+	margin-right: 30px;
+}
+
+.clickableImage {
+	cursor: pointer;
+}
+
+.spacing {
+	display: inline-block;
+	width: 13px;
+}
+
+nav {
+	line-height: 35px;
+	padding-top: 0;
+	padding-bottom: 0;
+}
+
+nav input[type="number"] {
+	width: 40px;
+}
+
+nav input[type="checkbox"] {
+	position: relative;
+	top: 2px;
+}
+
+main {
+	color: #ddd;
+}
+
+main .line {
+	display: block;
+	margin-top: 3px;
+}
+
+main hr {
+	border-color: #555;
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+
+main strong, main .serverName, main .versionV {
+	color: #ff9f1c;
+}
+
+main .versionV {
+	font-weight: bold;
 }
 
 main .serverName {
-	font-size: 14pt;
+	font-size: 16pt;
 	display: inline-block;
 	margin-right: 10px;
 }
 
+main .serverOverview {
+	background-color: #333;
+	display: inline-block;
+}
+
+main .connect {
+	font-family: monospace;
+}
+
+main .mods {
+	overflow: hidden;
+}
+
 footer {
+	margin-top: 20px;
 	color: #ccc;
 	font-size: 11pt;
 	font-family: serif;
