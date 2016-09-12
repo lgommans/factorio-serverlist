@@ -54,7 +54,7 @@ function searchFilter(server) {
 		+ (server.application_version ? server.application_version.game_version : '')
 		+ server.game_id.toString()
 		+ server.host_address
-		+ 'country:' + server.country
+		+ 'country:' + (server.country ? server.country : 'local')
 		;
 
 	if (server.tags) {
@@ -220,6 +220,17 @@ function getServerHTML(server) {
 		description = '<i class=line>' + escapeHtml(server.description) + '</i>';
 	}
 
+	var country = '';
+	if (server.country) {
+		country = "<img src='res/flags/" + server.country.toLowerCase() + ".gif' "
+			+ "alt='" + server.country + "' title='hosted in " + server.country + "'>";
+	}
+	else {
+		if (server.localIP) {
+			country = '(local, unreachable outside LAN)';
+		}
+	}
+
 	var tagstring = '';
 	if (server.tags) {
 		tagstring = '<strong>Tags</strong> ';
@@ -250,7 +261,7 @@ var html = (
 	+ "<span class=serverName>{NAME}</span>"
 	+ "<img width=20 src='res/link.png' title='Link to this game id' alt='Link' "
 		+ "onclick='link({GID});' class=clickableImage>&nbsp;&nbsp;"
-	+ "<img src='res/flags/{COUNTRYL}.gif' alt='{COUNTRY}' title='hosted in {COUNTRY}'><br>"
+	+ "{COUNTRY}<br>"
 	+ "<div class='serverOverview line'>"
 		+ "<img height=16 src='res/person.png' alt='players' title='players'> {PLAYERCOUNTINFO} | "
 		+ "<span title='playing time in hours and minutes'>"
@@ -267,8 +278,7 @@ var html = (
 		.replace(/{VERSION}/g, version)
 		.replace(/{TIME}/g, playTime)
 		.replace(/{PLAYERCOUNTINFO}/g, playerCountInfo)
-		.replace(/{COUNTRY}/g, server.country)
-		.replace(/{COUNTRYL}/g, server.country.toLowerCase())
+		.replace(/{COUNTRY}/g, country)
 		.replace(/{USER_VERIF}/g, user_verification)
 		.replace(/{PASSWORDED}/g, passworded)
 

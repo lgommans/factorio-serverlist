@@ -17,11 +17,18 @@
 		// Perform GeoIP lookups
 		foreach ($servers as $game_id=>$server) {
 			$ip = substr($server['host_address'], 0, strpos($server['host_address'], ':'));
+			if (substr($ip, 0, 3) == '10.' || substr($ip, 0, 6) == '192.168.') {
+				// If anyone feels like properly implementing the class B /21, have fun.
+				$servers[$game_id]['localIP'] = true;
+			}
+			else {
+				$servers[$game_id]['localIP'] = false;
+			}
 			try {
 				$servers[$game_id]['country'] = $geoip->country($ip)->country->isoCode;
 			}
 			catch (Exception $e) {
-				$servers[$game_id]['country'] = 'Unknown (probably unreachable)';
+				$servers[$game_id]['country'] = '';
 			}
 		}
 
