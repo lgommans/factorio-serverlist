@@ -6,6 +6,10 @@
 	require('config.php');
 	require('includes/functions.php');
 
+	require('geoip/geoip2.phar');
+	use GeoIp2\Database\Reader;
+	$geoip = new Reader('geoip/geolite-country.mmdb');
+
 	$db = new mysqli($db_host, $db_user, $db_pass, $db_name);
 	if ($db->connect_error) {
 		die('Database connection error. If this is a new install, edit config.php.');

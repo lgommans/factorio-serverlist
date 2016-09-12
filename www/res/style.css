@@ -43,8 +43,8 @@ a {
 	color: #d89954;
 }
 
-#about {
-	display: none;
+#status {
+	color: #ccc;
 }
 
 .part {
@@ -57,6 +57,12 @@ a {
 
 #search div {
 	display: inline-block;
+}
+
+main .serverName {
+	font-size: 14pt;
+	display: inline-block;
+	margin-right: 10px;
 }
 
 footer {
