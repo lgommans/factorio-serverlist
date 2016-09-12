@@ -17,7 +17,12 @@
 		// Perform GeoIP lookups
 		foreach ($servers as $game_id=>$server) {
 			$ip = substr($server['host_address'], 0, strpos($server['host_address'], ':'));
-			$servers[$game_id]['country'] = $geoip->country($ip)->country->isoCode;
+			try {
+				$servers[$game_id]['country'] = $geoip->country($ip)->country->isoCode;
+			}
+			catch (Exception $e) {
+				$servers[$game_id]['country'] = 'Unknown (probably unreachable)';
+			}
 		}
 
 		$servers = $db->escape_string(json_encode($servers));
