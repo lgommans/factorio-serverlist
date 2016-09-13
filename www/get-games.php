@@ -32,7 +32,11 @@
 	// Check if the data needs updating
 	$now = microtime(true);
 	if ($lastupdate < $now - $cache_duration && $last_start_update < $now - $update_timeout) {
-		list($lastupdate, $data) = serverlist_update();
+		list($success, $lastupdate_new, $data_new) = serverlist_update();
+		if ($success) {
+			$lastupdate = $lastupdate_new;
+			$data = $data_new;
+		}
 	}
 
 	die('{"lastupdate":' . $lastupdate . ',"servers":' . $data . '}');
@@ -46,7 +50,11 @@
 
 		// Get the latest data
 		$url = $factorio_url . '?username=' . $factorio_username . '&token=' . $factorio_token;
-		$tmpservers = json_decode(file_get_contents($url), true);
+		$tmpservers = file_get_contents($url);
+		if (strlen($tmpservers) < 2048) {
+			return [false, false, false];
+		}
+		$tmpservers = json_decode($tmpservers, true);
 		$lastupdate = microtime(true); // And note from when the data is before further processing
 
 		// Create a game_id=>server array from the dictionary
@@ -79,6 +87,6 @@
 		$db->query("UPDATE factorioservers SET data = '" . $db->escape_string($servers) . "', "
 			. "lastupdate = " . $lastupdate) or die('Database error 1958');
 
-		return [$lastupdate, $servers];
+		return [true, $lastupdate, $servers];
 	}
 
