@@ -1,8 +1,7 @@
-// TODO: rewrite the update loop as WebWorker
-
 Settings = {
 	displayUpdateTimeout: 350, // milliseconds
 	updateTime: [57, 65], // seconds, minimum and maximum
+	maxModListLength: 55, // characters, before it cuts off into an [expand] link
 };
 
 function $(query) {
@@ -139,46 +138,52 @@ function connect(game_id) {
 
 function getPlayerString(game_id) {
 	var players = serverData.servers[game_id].players;
-	if (serverData.servers[game_id].players) {
-		var playerStr = '<strong>Players</strong> ';
-		var comma = '';
-		for (var i in players) {
-			if (players[i] == '') continue;
-			playerStr += comma + players[i];
-			comma = ', ';
-		}
-		return playerStr + '<br>';
+	if (!players) {
+		return '';
 	}
-	return '';
+
+	var playerStr = '<div class=line><strong>Players</strong> ';
+	var comma = '';
+	for (var i in players) {
+		if (players[i] == '') continue;
+		playerStr += comma + players[i];
+		comma = ', ';
+	}
+	return playerStr + '</div>';
 }
 
-function expand(game_id) {
-	$(".players.id" + game_id).innerHTML = getPlayerString(game_id);
+function modsExpand(game_id) {
+	// Show the rest of the mods
+	if ($(".modsexpand.id" + game_id)) {
+		$(".modsexpand.id" + game_id).style.display = 'inline';
+	}
+
+	// Show the mods' versions
 	var els = $$(".modversion.id" + game_id);
 	for (var i in els) {
 		if (!els[i].style) continue;
 		els[i].style.display = 'inline';
 	}
-	$(".mods.id" + game_id).style.maxHeight = '999px';
+
+	// Hide the expand link
+	$(".modsexpandLink.id" + game_id).style.display = 'none';
 }
 
-function collapse(game_id) {
-	$(".players.id" + game_id).innerHTML = "";
+function modsCollapse(game_id) {
+	// Hide the expanded section of mods
+	if ($(".modsexpand.id" + game_id)) {
+		$(".modsexpand.id" + game_id).style.display = 'none';
+	}
+
+	// Hide all the mod versions
 	var els = $$(".modversion.id" + game_id);
 	for (var i in els) {
 		if (!els[i].style) continue;
 		els[i].style.display = 'none';
 	}
-	$(".mods.id" + game_id).style.maxHeight = '35px';
-}
 
-function onclick(game_id) {
-	if ($(".players.id" + game_id).innerHTML == "") {
-		expand(game_id);
-	}
-	else {
-		collapse(game_id);
-	}
+	// Show the expand link
+	$(".modsexpandLink.id" + game_id).style.display = 'inline';
 }
 
 function link(game_id) {
@@ -243,20 +248,33 @@ function getServerHTML(server) {
 	var modstring = '';
 	if (server.mods && server.mods.length > 1) {
 		modstring = '<strong>Mods</strong> ';
+		var expandClassTriggered = false;
+		var modsListLength = 0;
 		var comma = '';
 		for (var i in server.mods) {
 			if (server.mods[i].name == 'base') continue;
 			modstring += comma + escapeHtml(server.mods[i].name)
 				+ "<span class='modversion id" + game_id + "' style='display: none;'> "
 				+ escapeHtml(server.mods[i].version) + "</span>";
+			modsListLength += (comma + escapeHtml(server.mods[i].name)).length;
+			if (modsListLength > Settings.maxModListLength && expandClassTriggered == false) {
+				modstring += "<span class='modsexpand id" + game_id + "' style='display: none;'>";
+				expandClassTriggered = true;
+			}
 			comma = ', ';
 		}
+		if (expandClassTriggered) {
+			modstring += " <a href='#' onclick='modsCollapse("
+				+ game_id + "); return false;'>[collapse]</a></span>";
+		}
+		modstring += " <a href='#id" + game_id + "' class='modsexpandLink id" + game_id + "' "
+			+ "onclick='modsExpand(" + game_id + "); return false;'>[expand]</a>";
 	}
 
 // Sorry 'bout the formatting here. Not sure what the best solution is. This way we can at
 // least use HTML indentation while still fitting on any screen larger than a 80-char terminal.
 var html = (
-"<div onmouseover='expand({GID})' onmouseout='collapse({GID})' onclick='click({GID});' id='id{GID}'>"
+"<div id='id{GID}'>"
 	+ "<span class=serverName>{NAME}</span>"
 	+ "<img width=20 src='res/link.png' title='Link to this game id' alt='Link' "
 		+ "onclick='link({GID});' class=clickableImage>&nbsp;&nbsp;"
@@ -283,9 +301,9 @@ var html = (
 
 		+ description
 		+ "<div class='line connect id" + game_id + "'></div>"
-		+ "<div class='line players id" + game_id + "'></div>"
+		+ getPlayerString(game_id)
 		+ "<div class='line tags id" + game_id + "'>" + tagstring + "</div>"
-		+ "<div class='line mods id" + game_id + "' style='max-height: 35px;'>" + modstring + "</div>"
+		+ "<div class='line mods id" + game_id + "'>" + modstring + "</div>"
 		+ "</div>"
 		+ "<hr>";
 
