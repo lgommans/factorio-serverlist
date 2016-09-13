@@ -187,7 +187,7 @@ function modsCollapse(game_id) {
 }
 
 function link(game_id) {
-	location.hash = '#id' + game_id;
+	location.hash = '#game' + game_id;
 }
 
 function getServerHTML(server) {
@@ -276,8 +276,8 @@ function getServerHTML(server) {
 var html = (
 "<div id='id{GID}'>"
 	+ "<span class=serverName>{NAME}</span>"
-	+ "<img width=20 src='res/link.png' title='Link to this game id' alt='Link' "
-		+ "onclick='link({GID});' class=clickableImage>&nbsp;&nbsp;"
+	+ "<img width=20 src='res/link.png' title='Link to game id {GID}' alt='Link' "
+		+ "onclick='link({GID}); return false' class=clickableImage>&nbsp;&nbsp;"
 	+ "{COUNTRY}<br>"
 	+ "<div class='serverOverview line'>"
 		+ "<img height=16 src='res/person.png' alt='players' title='players'> {PLAYERCOUNTINFO} | "
@@ -358,9 +358,17 @@ function updateDisplay() {
 	var html = '';
 	var shownServers = 0;
 
-	sorted_game_ids = sortBy($("#sort").value.replace('+', ''));
-	if ($("#sort").value.indexOf('+') > 0) {
-		sorted_game_ids.reverse();
+	if (location.hash.substring(0, 5) == '#game') {
+		sorted_game_ids = [location.hash.substring(5)];
+		html += "<p><strong>You are viewing a single server.</strong> "
+			+ "<a href='#' onclick='location.hash=\"\";'>Back to the full list.</a>"
+			+ "</p><hr>";
+	}
+	else {
+		sorted_game_ids = sortBy($("#sort").value.replace('+', ''));
+		if ($("#sort").value.indexOf('+') > 0) {
+			sorted_game_ids.reverse();
+		}
 	}
 
 	for (var game_id in sorted_game_ids) {
@@ -497,7 +505,8 @@ game_ids = [];
 // actually updating the list (prevent each keystroke triggering an update)
 searchTimeout = false;
 
-// Bind filter fields
+// Bind fields
+onhashchange = queueDisplayUpdate;
 $("#search").onkeyup = $("#search").onchange = queueDisplayUpdate;
 $("#hidemods").onkeyup = $("#hidemods").onchange = queueDisplayUpdate;
 $("#nomods").onmouseup = $("#nomods").onchange = queueDisplayUpdate;
