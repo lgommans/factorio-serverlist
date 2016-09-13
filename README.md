@@ -1,8 +1,16 @@
 # Factorio Serverlist
 
-Unofficial serverlist for Factorio
+Unofficial serverlist for Factorio - version 0.9 (RC1)
 
-version 0.9 (RC1)
+**Features**
+
+- Display countries
+- Search by country, number of players, server version, mods (and versions),
+  name, description, tags, IP address, player name... even mod crc!
+- Servers are listed in random order for fairness, but order is preserved while
+  updating
+- List auto-updates every minute
+- Filter out passworded servers
 
 ## Installing
 
@@ -16,8 +24,9 @@ create a new database if you don't want to.
 
 ## License
 
-MIT. See the LICENSE file. Third party resources are all noted in the footer of
-the website (see www/index.html).
+MIT. See the [LICENSE](LICENSE) file. Third party resources are all noted in
+the footer of the website (see the live site, or check out
+[www/index.html](www/index.html)).
 
 ## Contributing
 
