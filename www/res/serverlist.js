@@ -1,7 +1,7 @@
 // TODO: rewrite the update loop as WebWorker
 
 Settings = {
-	displayUpdateTimeout: 300, // milliseconds
+	displayUpdateTimeout: 350, // milliseconds
 	updateTime: [57, 65], // seconds, minimum and maximum
 };
 
@@ -27,7 +27,6 @@ function aGET(uri, callback, errorCallback) {
 		}
 	}
 }
-
 
 function escapeHtml(unsafe) {
 	// From https://stackoverflow.com/a/6234804/1201863
@@ -336,9 +335,14 @@ function updateDisplay() {
 		+ leadingZero(dataDate.getMinutes()) + ":"
 		+ leadingZero(dataDate.getSeconds());
 
-	$("#status").innerHTML = 'Updated: ' + dataHMS
-		+ ' | ' + playersOnline + ' players in ' + shownServers + ' shown servers ('
-		+ game_ids.length + ' total)';
+	$("#status").innerHTML = (
+		'Updated: {TIME} | ' +
+		'{PLAYERS} players in {FILTERED_SERVERS} shown servers ({SERVERS} total)')
+		.replace('{TIME}', dataHMS)
+		.replace('{PLAYERS}', playersOnline)
+		.replace('{FILTERED_SERVERS}', shownServers)
+		.replace('{SERVERS}', game_ids.length)
+		;
 	
 	if (shownServers == 0) {
 		if (game_ids.length > 0) {
@@ -353,15 +357,6 @@ function updateDisplay() {
 
 function error(data) {
 	$("#status").innerHTML = 'Error loading data: ' + data;
-}
-
-function about() {
-	if ($("#about").style.display == 'block') {
-		$("#about").style.display = 'none';
-	}
-	else {
-		$("#about").style.display = 'block';
-	}
 }
 
 function newServerData(data) {
@@ -444,8 +439,8 @@ serverData = false;
 // Randomized (but consistent) array to keep them in order between reloads
 game_ids = [];
 
-// setTimeout result, to keep a small delay between when someone is typing and
-// actually updating the list (prevent each keystroke triggering a big computation)
+// setTimeout id, to keep a small delay between when someone is typing and
+// actually updating the list (prevent each keystroke triggering an update)
 searchTimeout = false;
 
 // Bind filter fields
@@ -461,24 +456,4 @@ $("#status").innerHTML = "<strong>Loading data...</strong>";
 (getNewServerData = function() {
 	aGET('get-games.php', newServerData, error);
 })();
-
-/* Debug code
-function testRandomizer() {
-	var rst = _randomizedList;
-	_randomizedList = [];
-	console.log(randomizeGameIds([1,2,3,4,5]), "initial");
-	console.log(randomizeGameIds([1,2,4,5,6]), "remove 3, add 6");
-	console.log(randomizeGameIds([1,2,4,5,6,7]), "add 7");
-	console.log(randomizeGameIds([1,2,4,7]), "remove 5 and 6");
-	_randomizedList = [];
-	var tmp = [];
-	var t = Date.now()
-	for (var i = 0; i < 5000; i++) {
-		_randomizedList.push(i);
-		tmp.push(i + 2500);
-	}
-	randomizeGameIds(tmp);
-	console.log("elapsed: ", Date.now() - t);
-	_randomizedList = rst;
-}*/
 
