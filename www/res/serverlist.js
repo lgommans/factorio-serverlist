@@ -292,6 +292,37 @@ var html = (
 	return html;
 }
 
+function sortBy(field) {
+	if (field == 'rand') {
+		return game_ids;
+	}
+
+	// sort() sorts in-place, so we need to create a copy with slice(0)
+	return game_ids.slice(0).sort(function(a, b) {
+		if (field == 'players') {
+			var playersA = serverData.servers[a].players;
+			var playersB = serverData.servers[b].players;
+			return (playersA ? playersA.length : 0) - (playersB ? playersB.length : 0);
+		}
+		else if (field == 'uptime') {
+			return b - a;
+		}
+		else if (field == 'mods') {
+			var modsA = serverData.servers[a].mods;
+			var modsB = serverData.servers[b].mods;
+			return (modsA ? modsA.length : 0) - (modsB ? modsB.length : 0);
+		}
+		else if (field == 'playerlim') {
+			var limA = serverData.servers[a].max_players;
+			var limB = serverData.servers[b].max_players;
+			return (limA == 0 ? Infinity : limA) - (limB == 0 ? Infinity : limB);
+		}
+		else if (field == 'playtime') {
+			return serverData.servers[a].game_time_elapsed - serverData.servers[b].game_time_elapsed;
+		}
+	});
+}
+
 function updateDisplay() {
 	if (searchTimeout !== false) {
 		searchTimeout = false;
@@ -309,8 +340,13 @@ function updateDisplay() {
 	var html = '';
 	var shownServers = 0;
 
-	for (var game_id in game_ids) {
-		var server = serverData.servers[game_ids[game_id]];
+	sorted_game_ids = sortBy($("#sort").value.replace('+', ''));
+	if ($("#sort").value.indexOf('+') > 0) {
+		sorted_game_ids.reverse();
+	}
+
+	for (var game_id in sorted_game_ids) {
+		var server = serverData.servers[sorted_game_ids[game_id]];
 		
 		if (searchFilter(server)) continue;
 		if (modFilter(server)) continue;
@@ -450,6 +486,7 @@ $("#nomods").onmouseup = $("#nomods").onchange = queueDisplayUpdate;
 $("#maxmodno").onkeyup = $("#maxmodno").onchange = $("#maxmodno").onmouseup = queueDisplayUpdate;
 $("#minPlayers").onkeyup = $("#minPlayers").onchange = $("#minPlayers").onmouseup = queueDisplayUpdate;
 $("#passworded").onmouseup = $("#passworded").onchange = queueDisplayUpdate;
+$("#sort").onchange = queueDisplayUpdate;
 
 // Load the data (this also triggers auto-update in newServerData)
 $("#status").innerHTML = "<strong>Loading data...</strong>";
