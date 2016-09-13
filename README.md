@@ -1,6 +1,6 @@
 # Factorio Serverlist
 
-Unofficial serverlist for Factorio - version 0.9 (RC1)
+Unofficial serverlist for Factorio - version 1.0
 
 **Features**
 
@@ -11,6 +11,7 @@ Unofficial serverlist for Factorio - version 0.9 (RC1)
   updating
 - List auto-updates every minute
 - Filter out passworded servers
+- Sort by playing time, number of players online, uptime, etc.
 
 ## Installing
 
