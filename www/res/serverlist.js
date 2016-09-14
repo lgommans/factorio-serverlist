@@ -226,7 +226,7 @@ function getServerHTML(server) {
 
 	var country = '';
 	if (server.country) {
-		country = "<img src='res/flags/" + server.country.toLowerCase() + ".gif' "
+		country = "<img src='res/flags/" + server.country.toLowerCase() + ".png' height=16 "
 			+ "alt='" + server.country + "' title='hosted in " + server.country + "'>";
 	}
 	else {
