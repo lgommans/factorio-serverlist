@@ -210,13 +210,13 @@ function getServerHTML(server) {
 	var user_verification = '';
 	if (server.require_user_verification == 'true') {
 		user_verification = '<img src="res/user-verification.png" height=16 '
-			+ 'title="Requires user verification" alt="user verification"> | ';
+			+ 'title="Requires user verification" alt="user verification">&nbsp;&nbsp;&nbsp;';
 	}
 
 	var passworded = '';
 	if (server.has_password == 'true') {
 		passworded = '<img src="res/passworded.png" height=16 title="Requires password" '
-			+ 'alt="passworded"> | ';
+			+ 'alt="passworded">&nbsp;&nbsp;&nbsp;';
 	}
 
 	var description = '';
@@ -275,15 +275,18 @@ function getServerHTML(server) {
 // least use HTML indentation while still fitting on any screen larger than a 80-char terminal.
 var html = (
 "<div id='id{GID}'>"
-	+ "<span class=serverName>{NAME}</span>"
 	+ "<img width=20 src='res/link.png' title='Link to game id {GID}' alt='Link' "
 		+ "onclick='link({GID}); return false' class=clickableImage>&nbsp;&nbsp;"
-	+ "{COUNTRY}<br>"
+	+ "<span class=serverName>{NAME}</span><br>"
 	+ "<div class='serverOverview line'>"
-		+ "<img height=16 src='res/person.png' alt='players' title='players'> {PLAYERCOUNTINFO} | "
+		+ "{COUNTRY} <div class=spacing></div>"
+		+ "<img height=16 src='res/person.png' alt='players' title='players'> {PLAYERCOUNTINFO}"
+		+ "&nbsp;&nbsp;&nbsp;"
 		+ "<span title='playing time in hours and minutes'>"
-			+ "<img height=16 src='res/clock.png' alt='playing time (hours, minutes)'> {TIME} </span>| "
-		+ "{VERSION} | "
+			+ "<img height=16 src='res/clock.png' alt='playing time (hours, minutes)'> {TIME}</span>"
+		+ "&nbsp;&nbsp;&nbsp;"
+		+ "{VERSION}"
+		+ "&nbsp;&nbsp;&nbsp;"
 		+ "{USER_VERIF}"
 		+ "{PASSWORDED}"
 		+ "<img height=16 src='res/connect.png' alt='join' title='join' onclick='connect({GID});' "
