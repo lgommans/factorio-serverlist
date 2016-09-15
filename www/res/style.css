@@ -85,6 +85,10 @@ nav input[type="checkbox"] {
 	top: 2px;
 }
 
+nav #loadPrevious {
+	display: none;
+}
+
 main {
 	color: #ddd;
 }

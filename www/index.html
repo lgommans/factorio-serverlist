@@ -44,6 +44,12 @@
 					<input type=checkbox id=passworded checked> hide passworded
 				</section>
 				<section>
+					<input type=button value=Reset onclick='reset();'>
+					<span id=loadPrevious>
+						<input type=button value='Load previous filters' onclick='load();'>
+					</span>
+				</section>
+				<section>
 					<strong>Sort by</strong>
 					<select id=sort>
 						<option value=rand>random</option>

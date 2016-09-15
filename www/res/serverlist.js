@@ -418,6 +418,18 @@ function updateDisplay() {
 				+ "issues. Probably the latter.";
 		}
 	}
+	else {
+		// We don't want to store a query that gives no results
+		localStorage['searchSettings'] = JSON.stringify({
+			search: $("#search").value,
+			hidemods: $("#hidemods").value,
+			nomods: $("#nomods").checked,
+			maxmodno: $("#maxmodno").value,
+			minPlayers: $("#minPlayers").value,
+			hidePwd: $("#passworded").checked,
+			sort: $("#sort").selectedIndex,
+		});
+	}
 }
 
 function error(data) {
@@ -437,6 +449,30 @@ function newServerData(data) {
 
 	var time = getRandom(Settings.updateTime[0] * 1000, Settings.updateTime[1] * 1000);
 	setTimeout(getNewServerData, time);
+}
+
+function load() {
+	$("#loadPrevious").style.display = 'none';
+
+	$("#search").value = lastSearchSettings.search;
+	$("#hidemods").value = lastSearchSettings.hidemods;
+	$("#nomods").checked = lastSearchSettings.nomods;
+	$("#maxmodno").value = lastSearchSettings.maxmodno;
+	$("#minPlayers").value = lastSearchSettings.minPlayers;
+	$("#passworded").checked = lastSearchSettings.passworded;
+	$("#sort").selectedIndex = lastSearchSettings.sort;
+	updateDisplay();
+}
+
+function reset() {
+	$("#search").value = '';
+	$("#hidemods").value = '';
+	$("#nomods").checked = false;
+	$("#maxmodno").value = '';
+	$("#minPlayers").value = '';
+	$("#passworded").checked = true;
+	$("#sort").selectedIndex = 0;
+	updateDisplay();
 }
 
 function queueDisplayUpdate() {
@@ -508,15 +544,23 @@ game_ids = [];
 // actually updating the list (prevent each keystroke triggering an update)
 searchTimeout = false;
 
+if (localStorage['searchSettings']) {
+	lastSearchSettings = JSON.parse(localStorage['searchSettings']);
+	$("#loadPrevious").style.display = 'inline';
+}
+else {
+	lastSearchSettings = {};
+}
+
 // Bind fields
-onhashchange = queueDisplayUpdate;
+onhashchange = updateDisplay;
 $("#search").onkeyup = $("#search").onchange = queueDisplayUpdate;
 $("#hidemods").onkeyup = $("#hidemods").onchange = queueDisplayUpdate;
-$("#nomods").onmouseup = $("#nomods").onchange = queueDisplayUpdate;
+$("#nomods").onmouseup = $("#nomods").onchange = updateDisplay;
 $("#maxmodno").onkeyup = $("#maxmodno").onchange = $("#maxmodno").onmouseup = queueDisplayUpdate;
 $("#minPlayers").onkeyup = $("#minPlayers").onchange = $("#minPlayers").onmouseup = queueDisplayUpdate;
-$("#passworded").onmouseup = $("#passworded").onchange = queueDisplayUpdate;
-$("#sort").onchange = queueDisplayUpdate;
+$("#passworded").onmouseup = $("#passworded").onchange = updateDisplay;
+$("#sort").onchange = updateDisplay;
 
 // Load the data (this also triggers auto-update in newServerData)
 $("#status").innerHTML = "<strong>Loading data...</strong>";
