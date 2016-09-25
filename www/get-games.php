@@ -93,6 +93,7 @@
 				}
 			}
 			unset($servers[$game_id]['game_secret']); // This is currently useless info
+			unset($servers[$game_id]['mod_crc']); // This is currently useless info
 		}
 
 		$json = json_encode($servers);
