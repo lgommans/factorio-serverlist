@@ -2,6 +2,8 @@ Settings = {
 	displayUpdateTimeout: 350, // milliseconds
 	updateTime: [57, 65], // seconds, minimum and maximum
 	maxModListLength: 55, // characters, before it cuts off into an [expand] link
+	serversPerDisplayUpdate: 4, // max number of servers added to $(main) at once (prevent freezing)
+	defineScrolled: 400, // pixel threshold before user is considered to have scrolled down
 };
 
 function $(query) {
@@ -190,7 +192,7 @@ function link(game_id) {
 	location.hash = '#game' + game_id;
 }
 
-function getServerHTML(server) {
+function getServerDiv(server) {
 	// Returns the HTML to be rendered for this server
 
 	var playHours = Math.floor(server.game_time_elapsed / 60).toString();
@@ -251,9 +253,11 @@ function getServerHTML(server) {
 		var expandClassTriggered = false;
 		var modsListLength = 0;
 		var comma = '';
+		var link = '';
 		for (var i in server.mods) {
 			if (server.mods[i].name == 'base') continue;
-			modstring += comma + escapeHtml(server.mods[i].name)
+			link = '<a href="https://mods.factorio.com/?q=' + escape(server.mods[i].name) + '" target="_blank">';
+			modstring += comma + link + escapeHtml(server.mods[i].name) + '</a>'
 				+ "<span class='modversion id" + game_id + "' style='display: none;'> "
 				+ escapeHtml(server.mods[i].version) + "</span>";
 			modsListLength += (comma + escapeHtml(server.mods[i].name)).length;
@@ -271,11 +275,12 @@ function getServerHTML(server) {
 			+ "onclick='modsExpand(" + game_id + "); return false;'>[expand]</a>";
 	}
 
+	var div = document.createElement('div');
+	div.id = 'id' + game_id;
+
 // Sorry 'bout the formatting here. Not sure what the best solution is. This way we can at
 // least use HTML indentation while still fitting on any screen larger than a 80-char terminal.
-var html = (
-"<div id='id{GID}'>"
-	+ "<img width=20 src='res/link.png' title='Link to game id {GID}' alt='Link' "
+div.innerHTML = ("<img width=20 src='res/link.png' title='Link to game id {GID}' alt='Link' "
 		+ "onclick='link({GID}); return false' class=clickableImage>&nbsp;&nbsp;"
 	+ "<span class=serverName>{NAME}</span><br>"
 	+ "<div class='serverOverview line'>"
@@ -289,10 +294,11 @@ var html = (
 		+ "&nbsp;&nbsp;&nbsp;"
 		+ "{USER_VERIF}"
 		+ "{PASSWORDED}"
-		+ "<img height=16 src='res/connect.png' alt='join' title='join' onclick='connect({GID});' "
-			+ "class=clickableImage>"
-	+ "</div>")
-
+		// This currently doesn't work, since you need the game_secret and factorio has no command line
+		// option to provide that.
+		//+ "<img height=16 src='res/connect.png' alt='join' title='join' onclick='connect({GID});' "
+			//+ "class=clickableImage>"
+	)
 		.replace(/{GID}/g, game_id)
 		.replace(/{NAME}/g, escapeHtml(server.name))
 		.replace(/{VERSION}/g, version)
@@ -310,11 +316,15 @@ var html = (
 		+ "</div>"
 		+ "<hr>";
 
-	return html;
+	return div;
 }
 
 function sortBy(field) {
 	if (field == 'rand') {
+		return game_ids;
+	}
+	if (field == 'distance' && serverData.yourlocation === false) {
+		alert("Sorry, we do not know your location, so we cannot sort by distance.");
 		return game_ids;
 	}
 
@@ -341,7 +351,73 @@ function sortBy(field) {
 		else if (field == 'playtime') {
 			return serverData.servers[a].game_time_elapsed - serverData.servers[b].game_time_elapsed;
 		}
+		else if (field == 'distance') {
+			// If we don't have coordinates, so it's probably a local IP
+			// address, so unreachable, so infinite distance. We could check
+			// for a local IP, but I have yet to see a case where it's not
+			// cause by a local IP, and returning random coordinates does not
+			// seem much better.
+			if (!serverData.servers[a].coords) {
+				if (!serverData.servers[b].coords) {
+					return 0;
+				}
+				return 1;
+			}
+			if (!serverData.servers[b].coords) {
+				return -1;
+			}
+			var distToA = coordDistance(serverData.yourlocation, serverData.servers[a].coords);
+			var distToB = coordDistance(serverData.yourlocation, serverData.servers[b].coords);
+			return distToA - distToB;
+		}
+		else if (field == 'country') {
+			if (serverData.servers[a].country == serverData.servers[b].country) {
+				return 0;
+			}
+			if (serverData.servers[a].country > serverData.servers[b].country) {
+				return 1;
+			}
+			return -1;
+		}
 	});
+}
+
+function coordDistance(latlon1, latlon2) {
+	// Adapted from http://stackoverflow.com/a/21623206
+	latlon1 = latlon1.split(',');
+	latlon2 = latlon2.split(',');
+
+	var p = 0.017453292519943295;
+	var c = Math.cos;
+	var a = 0.5 - c((latlon2[0] - latlon1[0]) * p)/2 + c(latlon1[0] * p) * c(latlon2[0] * p) * (1 - c((latlon2[1] - latlon1[1]) * p))/2;
+
+	return 12742 * Math.asin(Math.sqrt(a));
+}
+
+function deg2rad(deg) {
+	return deg * (Math.PI/180);
+}
+
+function queueUpdate(game_ids) {
+	if (game_ids) {
+		_queuedGameIds = game_ids;
+		$("main").innerHTML = '';
+	}
+	if (queueUpdateTimeout !== 'ready') {
+		clearTimeout(queueUpdateTimeout);
+	}
+	for (var i = 0; i < Settings.serversPerDisplayUpdate; i++) {
+		var game_id = _queuedGameIds.shift();
+		if (game_id) {
+			$("main").appendChild(getServerDiv(serverData.servers[game_id]));
+		}
+		else {
+			// Last shift() returned undefined; end of list.
+			queueUpdateTimeout = 'ready';
+			return;
+		}
+	}
+	queueUpdateTimeout = setTimeout(queueUpdate, 67);
 }
 
 function updateDisplay() {
@@ -374,26 +450,30 @@ function updateDisplay() {
 		}
 	}
 
-	for (var game_id in sorted_game_ids) {
-		var server = serverData.servers[sorted_game_ids[game_id]];
+	var shownServers = [];
+
+	for (var i in sorted_game_ids) {
+		var server = serverData.servers[sorted_game_ids[i]];
 		
 		if (searchFilter(server)) continue;
+
 		if (modFilter(server)) continue;
+
 		if (parseInt($("#minPlayers").value) > (server.players ? server.players.length : 0)) continue;
+
 		if ($("#passworded").checked && server.has_password == 'true') continue;
 
-		// no server actually has user verification at this point
-		//if (!$("#hideUserVerif").checked && server.require_user_verification == 'true') continue;
+		if ($("#onlyUserVerif").checked && server.require_user_verification != 'true') continue;
+		else if ($("#hideUserVerif").checked && server.require_user_verification == 'true') continue;
 
-		html += getServerHTML(server);
-		shownServers++;
+		shownServers.push(sorted_game_ids[i]);
 
 		if (server.players) {
 			playersOnline += server.players.length;
 		}
 	}
 
-	$("main").innerHTML = html;
+	queueUpdate(shownServers);
 
 	var dataDate = new Date(serverData.lastupdate * 1000);
 	var dataHMS = leadingZero(dataDate.getHours()) + ":"
@@ -405,11 +485,11 @@ function updateDisplay() {
 		'{PLAYERS} players in {FILTERED_SERVERS} shown servers ({SERVERS} total)')
 		.replace('{TIME}', dataHMS)
 		.replace('{PLAYERS}', playersOnline)
-		.replace('{FILTERED_SERVERS}', shownServers)
+		.replace('{FILTERED_SERVERS}', shownServers.length)
 		.replace('{SERVERS}', game_ids.length)
 		;
 	
-	if (shownServers == 0) {
+	if (shownServers.length == 0) {
 		if (game_ids.length > 0) {
 			$("main").innerHTML = "<strong>No servers match your criteria.</strong>";
 		}
@@ -428,12 +508,20 @@ function updateDisplay() {
 			minPlayers: $("#minPlayers").value,
 			hidePwd: $("#passworded").checked,
 			sort: $("#sort").selectedIndex,
+			onlyUserVerif: $("#onlyUserVerif").checked,
+			hideUserVerif: $("#hideUserVerif").checked,
+			allowUserVerif: $("#allowUserVerif").checked,
+			version: 2 // Increment me every time you make a change to the fields here
 		});
 	}
 }
 
 function error(data) {
 	$("#status").innerHTML = 'Error loading data: ' + data;
+}
+
+function getScrollPosition() {
+	return document.documentElement.scrollTop || document.body.scrollTop;
 }
 
 function newServerData(data) {
@@ -445,9 +533,18 @@ function newServerData(data) {
 	}
 	game_ids = randomizeGameIds(game_ids);
 
-	updateDisplay();
-
 	var time = getRandom(Settings.updateTime[0] * 1000, Settings.updateTime[1] * 1000);
+	if (getScrollPosition() < Settings.defineScrolled) {
+		// User is not scrolled down, so rebuilding the list will not reset their scroll position.
+		updateDisplay();
+	}
+	else {
+		// They don't see updates anyway, there is an update queued already
+		// (for next time they change the filter parameters). We might as well
+		// delay it a bit.
+		time *= 1.5;
+	}
+
 	setTimeout(getNewServerData, time);
 }
 
@@ -461,6 +558,11 @@ function load() {
 	$("#minPlayers").value = lastSearchSettings.minPlayers;
 	$("#passworded").checked = lastSearchSettings.passworded;
 	$("#sort").selectedIndex = lastSearchSettings.sort;
+	if (lastSearchSettings.version && lastSearchSettings.version > 1) {
+		$("#onlyUserVerif").checked = lastSearchSettings.onlyUserVerif;
+		$("#hideUserVerif").checked = lastSearchSettings.hideUserVerif;
+		$("#allowUserVerif").checked = lastSearchSettings.allowUserVerif;
+	}
 	updateDisplay();
 }
 
@@ -472,6 +574,9 @@ function reset() {
 	$("#minPlayers").value = '';
 	$("#passworded").checked = true;
 	$("#sort").selectedIndex = 0;
+	$("#onlyUserVerif").checked = false;
+	$("#hideUserVerif").checked = false;
+	$("#allowUserVerif").checked = true;
 	updateDisplay();
 }
 
@@ -508,7 +613,7 @@ randomizeGameIds = (function() {
 		// Add new game ids
 		for (var i in list) {
 			if (_randomizedList.indexOf(list[i]) == -1) {
-				if ((document.documentElement.scrollTop || document.body.scrollTop) > 400) {
+				if (getScrollPosition() > Settings.defineScrolled) {
 					_randomizedList.push(list[i]);
 				}
 				else {
@@ -544,6 +649,9 @@ game_ids = [];
 // actually updating the list (prevent each keystroke triggering an update)
 searchTimeout = false;
 
+// setTimeout id of the loader (prevents display freezing)
+queueUpdateTimeout = 'ready';
+
 if (localStorage['searchSettings']) {
 	lastSearchSettings = JSON.parse(localStorage['searchSettings']);
 	$("#loadPrevious").style.display = 'inline';
@@ -561,6 +669,9 @@ $("#maxmodno").onkeyup = $("#maxmodno").onchange = $("#maxmodno").onmouseup = qu
 $("#minPlayers").onkeyup = $("#minPlayers").onchange = $("#minPlayers").onmouseup = queueDisplayUpdate;
 $("#passworded").onmouseup = $("#passworded").onchange = updateDisplay;
 $("#sort").onchange = updateDisplay;
+$("#onlyUserVerif").onchange = $("#onlyUserVerif").onkeyup = $("#onlyUserVerif").onmouseup = updateDisplay;
+$("#hideUserVerif").onchange = $("#hideUserVerif").onkeyup = $("#hideUserVerif").onmouseup = updateDisplay;
+$("#allowUserVerif").onchange = $("#allowUserVerif").onkeyup = $("#allowUserVerif").onmouseup = updateDisplay;
 
 // Load the data (this also triggers auto-update in newServerData)
 $("#status").innerHTML = "<strong>Loading data...</strong>";

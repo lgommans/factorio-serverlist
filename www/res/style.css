@@ -118,17 +118,17 @@ main .serverName {
 	margin-right: 10px;
 }
 
-main .serverOverview {
-	background-color: #333;
-	display: inline-block;
-}
-
 main .connect {
 	font-family: monospace;
 }
 
-main .mods {
-	overflow: hidden;
+main a {
+	/* links to mods.factorio.com */
+	text-decoration: none;
+}
+
+main .modsexpandLink {
+	text-decoration: underline;
 }
 
 footer {

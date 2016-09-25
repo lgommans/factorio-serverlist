@@ -4,7 +4,7 @@
 
 	// Load GeoIP database
 	use GeoIp2\Database\Reader;
-	$geoip = new Reader('geoip/geolite-country.mmdb');
+	$geoip = new Reader('geoip/geolite-city.mmdb');
 
 	$db = new mysqli($db_host, $db_user, $db_pass, $db_name);
 	if ($db->connect_error) {
@@ -39,7 +39,15 @@
 		}
 	}
 
-	die('{"lastupdate":' . $lastupdate . ',"servers":' . $data . '}');
+	try {
+		$record = $geoip->city($_SERVER['REMOTE_ADDR']);
+		$latlon = '"' . $record->location->latitude . ',' . $record->location->longitude . '"';
+	}
+	catch (Exception $e) {
+		$latlon = 'false';
+	}
+
+	die('{"lastupdate":' . $lastupdate . ',"servers":' . $data . ',"yourlocation":' . $latlon . '}');
 
 	function serverlist_update() {
 		global $db, $factorio_url, $factorio_username, $factorio_token, $geoip;
@@ -75,18 +83,22 @@
 				$servers[$game_id]['localIP'] = false;
 
 				try {
-					$servers[$game_id]['country'] = $geoip->country($ip)->country->isoCode;
+					$record = $geoip->city($ip);
+					$servers[$game_id]['country'] = $record->country->isoCode;
+					$servers[$game_id]['coords'] = $record->location->latitude . ',' . $record->location->longitude;
 				}
 				catch (Exception $e) {
 					$servers[$game_id]['country'] = '';
+					$servers[$game_id]['coords'] = '';
 				}
 			}
+			unset($servers[$game_id]['game_secret']); // This is currently useless info
 		}
 
-		$servers = json_encode($servers);
-		$db->query("UPDATE factorioservers SET data = '" . $db->escape_string($servers) . "', "
+		$json = json_encode($servers);
+		$db->query("UPDATE factorioservers SET data = '" . $db->escape_string($json) . "', "
 			. "lastupdate = " . $lastupdate) or die('Database error 1958');
 
-		return [true, $lastupdate, $servers];
+		return [true, $lastupdate, $json];
 	}
 

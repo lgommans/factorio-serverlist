@@ -6,10 +6,6 @@
 		<link rel=stylesheet href="res/style.css">
 	</head>
 	<body>
-		<noscript>
-			<h1>This page uses Javascript to dynamically search, filter and update the data.</h1>
-		</noscript>
-
 		<div id=wrapper>
 			<header class=part>
 				<section>
@@ -21,6 +17,12 @@
 			</header>
 
 			<nav id=filters class=part>
+				<noscript>
+					<h1>This page uses Javascript to dynamically search, filter and update the data.</h1>
+					<h3>But it is disabled in your browser :(</h3>
+					<hr>
+				</noscript>
+
 				<section>
 					<strong>Search</strong>
 					<input id=search size=35 placeholder="0.14.5 team challenge country:GB">
@@ -29,19 +31,21 @@
 				<section>
 					<strong>Hide mods</strong>
 					<input id=hidemods size=25 placeholder="aircraft 1.0.7 boblogi"><div class=spacing></div>
-					<input type=checkbox id=nomods> hide all <div class=spacing></div>
+					<label><input type=checkbox id=nomods> hide all</label> <div class=spacing></div>
 					<input type=number size=2 id=maxmodno> max. number of mods
 				</section>
 				<section>
 					<strong>Players</strong> <input type=number id=minPlayers value=0> or more
 				</section>
-				<!-- <section> I discovered none of them require user verification, actually.
+				<section>
 					<strong>User verification</strong>
-					<input type=checkbox id=hideUserVerif checked> allow
-				</section> -->
+					<label><input type=radio id=allowUserVerif name=userverif checked> show</label>
+					<label><input type=radio id=hideUserVerif name=userverif> hide</label>
+					<label><input type=radio id=onlyUserVerif name=userverif> only</label>
+				</section>
 				<section>
 					<strong>Password</strong>
-					<input type=checkbox id=passworded checked> hide passworded
+					<label><input type=checkbox id=passworded checked> hide passworded</label>
 				</section>
 				<section>
 					<input type=button value=Reset onclick='reset();'>
@@ -53,6 +57,7 @@
 					<strong>Sort by</strong>
 					<select id=sort>
 						<option value=rand>random</option>
+						<option value=distance>distance (least first)</option>
 						<option value=uptime+>uptime (most first)</option>
 						<option value=uptime>uptime (least first)</option>
 						<option value=players+>players (most first)</option>
@@ -63,12 +68,13 @@
 						<option value=playtime>playing time (least first)</option>
 						<option value=playerlim+>player limit (most first)</option>
 						<option value=playerlim>player limit (least first)</option>
+						<option value=country>country</option>
 					</select>
 				</section>
 			</nav>
 
 			<section id=status class=part>
-				Loading page...
+				Loading javascript...
 			</section>
 
 			<main id=servers class=part></main>
@@ -76,8 +82,8 @@
 			<footer class=part id=footer> <!-- id added for the fragmentIdentifier #footer -->
 				<h3>About this website</h3>
 				This website is made by Luc Gommans ('luc' in game, irc, forums and wiki). It uses
-				the reverse engineered Factorio API with informal permission from Oxyd. The data
-				remains copyright Wube Software. This software is available under the MIT license on
+				the Factorio API with permission from Factorio staff. The data remains copyright Wube
+				Software. This software is available under the MIT license on
 				<a href="https://github.com/lgommans/factorio-serverlist" target="_blank">Github</a>.
 
 				<h3>Credits and copyrights</h3>
@@ -100,10 +106,9 @@
 					fine. The link icon is from
 					<a href="https://commons.wikimedia.org/wiki/File:Chain_link_icon.png" target="_blank">Mdowdell, Wikimedia</a>,
 					CC-BY-SA 3.0.
-					<!-- Turns out, no server has this turned on, so the icon is never visible.
 					The 'user verification' (customs) icon is by
 					<a href="https://icons8.com/">icons8</a>, CC-BY-ND (via
-					<a href="http://www.iconarchive.com/show/windows-8-icons-by-icons8/Travel-Customs-Officer-icon.html">iconarchive.com</a>). -->
+					<a href="http://www.iconarchive.com/show/windows-8-icons-by-icons8/Travel-Customs-Officer-icon.html">iconarchive.com</a>).
 					The lock icon is from Grecor Črešnar, via
 					<a href="https://thenounproject.com/term/password/385803/">thenounproject.com</a>,
 					CC-BY. I removed the asterisks below the lock (stating changes is a requirement).
