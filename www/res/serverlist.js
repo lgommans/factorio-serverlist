@@ -549,7 +549,8 @@ function newServerData(data) {
 }
 
 function load() {
-	$("#loadPrevious").style.display = 'none';
+	// maintain dimensions so elements don't jump around
+	$("#loadPrevious").style.visibility = 'hidden';
 
 	$("#search").value = lastSearchSettings.search;
 	$("#hidemods").value = lastSearchSettings.hidemods;
