@@ -233,8 +233,32 @@ function getServerDiv(server) {
 	}
 	else {
 		if (server.localIP) {
-			country = '(local, unreachable outside LAN)';
+			country = '(LAN-only)';
 		}
+	}
+
+	var distance = '';
+	if (serverData.yourlocation && server.coords) {
+		distance = "<img height=16 src='res/distance3.svg' alt='distance (estimate)' "
+			+ "title='distance (estimate)'>";
+
+		var Mmalt = '<span title="Mm is megameters. 1 megameter = 1000 kilometers">';
+		var decimalDistance = coordDistance(serverData.yourlocation, server.coords);
+		if (decimalDistance < 1000) {
+			distance += Math.round(decimalDistance) + "km";
+		}
+		else if (decimalDistance < 10 * 1000) {
+			var strDistance = (Math.round(decimalDistance / 100) / 10).toString();
+			distance += Mmalt + strDistance;
+			if (strDistance.length == 1) {
+				distance += '.0';
+			}
+			distance += "Mm</span>";
+		}
+		else {
+			distance += Mmalt + Math.round(decimalDistance / 1000) + "Mm</span>";
+		}
+		distance += "&nbsp;&nbsp;&nbsp;";
 	}
 
 	var tagstring = '';
@@ -292,6 +316,7 @@ div.innerHTML = ("<img width=20 src='res/link.png' title='Link to game id {GID}'
 		+ "&nbsp;&nbsp;&nbsp;"
 		+ "{VERSION}"
 		+ "&nbsp;&nbsp;&nbsp;"
+		+ "{DISTANCE}"
 		+ "{USER_VERIF}"
 		+ "{PASSWORDED}"
 		// This currently doesn't work, since you need the game_secret and factorio has no command line
@@ -305,6 +330,7 @@ div.innerHTML = ("<img width=20 src='res/link.png' title='Link to game id {GID}'
 		.replace(/{TIME}/g, playTime)
 		.replace(/{PLAYERCOUNTINFO}/g, playerCountInfo)
 		.replace(/{COUNTRY}/g, country)
+		.replace(/{DISTANCE}/g, distance)
 		.replace(/{USER_VERIF}/g, user_verification)
 		.replace(/{PASSWORDED}/g, passworded)
 
@@ -526,6 +552,7 @@ function getScrollPosition() {
 
 function newServerData(data) {
 	serverData = JSON.parse(data);
+	serverData.yourlocation = '63.10367,21.63945';
 
 	game_ids = [];
 	for (var game_id in serverData.servers) {

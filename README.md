@@ -1,6 +1,6 @@
 # Factorio Serverlist
 
-Unofficial serverlist for Factorio - version 1.0
+Unofficial serverlist for Factorio - version 2.1
 
 **Features**
 

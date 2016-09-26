@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd">
+<svg width="5cm" height="4cm" viewBox="-1 -1 91 79" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <path style="fill: none; fill-opacity:0; stroke-width: 7; stroke: #ff9f1c" d="M 23.3783 73.1698 C 2.77646,58.4542 -8.19321,10.27 22.7096,11.5313"/>
+  <path style="fill: none; fill-opacity:0; stroke-width: 7; stroke: #ff9f1c" d="M 22.1147 73.2846 C 37.2508,56.4668 49.7232,10.5853 22.3943,11.6364"/>
+  <path style="fill: none; fill-opacity:0; stroke-width: 7; stroke: #ff9f1c" d="M 71.883 65.0813 C 51.2812,50.3656 40.3115,2.18148 71.2143,3.44282"/>
+  <path style="fill: none; fill-opacity:0; stroke-width: 7; stroke: #ff9f1c" d="M 70.6194 65.1961 C 85.7555,48.3783 98.2279,2.49681 70.899,3.54792"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 10; stroke-dasharray: 9; stroke: #ff9f1c" x1="34.4697" y1="71.406" x2="62.756" y2="66.5958"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 10; stroke: #ff9f1c" x1="17.1788" y1="24.5876" x2="24.2497" y2="31.5701"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 10; stroke: #ff9f1c" x1="66.8145" y1="16.5669" x2="73.3929" y2="22.9966"/>
+</svg>
