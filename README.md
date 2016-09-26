@@ -4,14 +4,13 @@ Unofficial serverlist for Factorio - version 2.1
 
 **Features**
 
-- Display countries
-- Search by country, number of players, server version, mods (and versions),
-  name, description, tags, IP address, player name... even mod crc!
-- Servers are listed in random order for fairness, but order is preserved while
-  updating
+- Display countries and sort by closest server
+- Search by number of players, server version, mods (and versions),
+  server name, description, tags, IP address and player name
 - List auto-updates every minute
-- Filter out passworded servers
+- Filter out passworded servers or servers that require user verification
 - Sort by playing time, number of players online, uptime, etc.
+- It remembers your last search settings
 
 ## Installing
 
