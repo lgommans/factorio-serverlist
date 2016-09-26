@@ -50,28 +50,28 @@ function searchFilter(server) {
 	}
 
 	var searchable = server.name
-		+ server.description
-		+ (server.application_version ? server.application_version.game_version : '')
-		+ server.game_id.toString()
-		+ server.host_address
-		+ 'country:' + (server.country ? server.country : 'local')
+		+ server.description + ' '
+		+ (server.application_version ? server.application_version.game_version : '') + ' '
+		+ server.game_id.toString() + ' '
+		+ server.host_address + ' '
+		+ 'country:' + (server.country ? server.country : 'local') + ' '
 		;
 
 	if (server.tags) {
 		for (var i in server.tags) {
-			searchable += server.tags[i];
+			searchable += server.tags[i] + ' ';
 		}
 	}
 
 	if (server.players) {
 		for (var i in server.players) {
-			searchable += server.players[i];
+			searchable += server.players[i] + ' ';
 		}
 	}
 
 	if (server.mods) {
 		for (var i in server.mods) {
-			searchable += server.mods[i].name + " " + server.mods[i].version;
+			searchable += server.mods[i].name + " " + server.mods[i].version + ' ';
 		}
 	}
 
@@ -280,7 +280,8 @@ function getServerDiv(server) {
 		var link = '';
 		for (var i in server.mods) {
 			if (server.mods[i].name == 'base') continue;
-			link = '<a href="https://mods.factorio.com/?q=' + escape(server.mods[i].name) + '" target="_blank">';
+			link = '<a href="https://mods.factorio.com/?q=' + escape(server.mods[i].name)
+				+ '" target="_blank">';
 			modstring += comma + link + escapeHtml(server.mods[i].name) + '</a>'
 				+ "<span class='modversion id" + game_id + "' style='display: none;'> "
 				+ escapeHtml(server.mods[i].version) + "</span>";
@@ -499,8 +500,6 @@ function updateDisplay() {
 		}
 	}
 
-	queueUpdate(shownServers);
-
 	var dataDate = new Date(serverData.lastupdate * 1000);
 	var dataHMS = leadingZero(dataDate.getHours()) + ":"
 		+ leadingZero(dataDate.getMinutes()) + ":"
@@ -540,6 +539,8 @@ function updateDisplay() {
 			version: 2 // Increment me every time you make a change to the fields here
 		});
 	}
+
+	queueUpdate(shownServers);
 }
 
 function error(data) {
