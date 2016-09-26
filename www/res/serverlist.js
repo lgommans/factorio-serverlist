@@ -192,6 +192,19 @@ function link(game_id) {
 	location.hash = '#game' + game_id;
 }
 
+function addThousandSeparator(n) {
+	n = n.toString();
+	var separated = '';
+	var i;
+	for (i = n.length - 3; i >= 0; i -= 3) {
+		separated = ' ' + n.substr(i, 3) + separated;
+	}
+	if (i != 0) {
+		return n.substr(0, 3+i) + separated;
+	}
+	return separated.substr(1);
+}
+
 function getServerDiv(server) {
 	// Returns the HTML to be rendered for this server
 
@@ -239,26 +252,13 @@ function getServerDiv(server) {
 
 	var distance = '';
 	if (serverData.yourlocation && server.coords) {
+		var km = addThousandSeparator(Math.round(
+			coordDistance(serverData.yourlocation, server.coords)
+		));
 		distance = "<img height=16 src='res/distance3.svg' alt='distance (estimate)' "
-			+ "title='distance (estimate)'>";
-
-		var Mmalt = '<span title="Mm is megameters. 1 megameter = 1000 kilometers">';
-		var decimalDistance = coordDistance(serverData.yourlocation, server.coords);
-		if (decimalDistance < 1000) {
-			distance += Math.round(decimalDistance) + "km";
-		}
-		else if (decimalDistance < 10 * 1000) {
-			var strDistance = (Math.round(decimalDistance / 100) / 10).toString();
-			distance += Mmalt + strDistance;
-			if (strDistance.length == 1) {
-				distance += '.0';
-			}
-			distance += "Mm</span>";
-		}
-		else {
-			distance += Mmalt + Math.round(decimalDistance / 1000) + "Mm</span>";
-		}
-		distance += "&nbsp;&nbsp;&nbsp;";
+			+ "title='distance (estimate)'> "
+			+ km + "km"
+			+ "&nbsp;&nbsp;&nbsp;";
 	}
 
 	var tagstring = '';
@@ -552,7 +552,6 @@ function getScrollPosition() {
 
 function newServerData(data) {
 	serverData = JSON.parse(data);
-	serverData.yourlocation = '63.10367,21.63945';
 
 	game_ids = [];
 	for (var game_id in serverData.servers) {
