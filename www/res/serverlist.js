@@ -346,6 +346,34 @@ div.innerHTML = ("<img width=20 src='res/link.png' title='Link to game id {GID}'
 	return div;
 }
 
+function serverScore(server) {
+	var score = 0; // higher is better
+
+	if (server.players) {
+		// Players are good, but more players is not always better
+		var additional = 1000;
+		for (var i in server.players) {
+			score += Math.max(0, additional);
+			additional -= 150;
+		}
+	}
+
+	if (server.mods && server.mods.length > 1) {
+		// Other mods than base? Subtract a little bit from the score since
+		// the player might not have those mods.
+		score -= 100 + Math.min(10, server.mods.length) * 15;
+	}
+
+	if (serverData.yourlocation && server.coords) {
+		score -= Math.pow(coordDistance(serverData.yourlocation, server.coords), 2) / 1000;
+	}
+	else if (server.localIP) {
+		score -= 999000; // lan-only, unreachable.
+	}
+
+	return score;
+}
+
 function sortBy(field) {
 	if (field == 'rand') {
 		return game_ids;
@@ -357,7 +385,10 @@ function sortBy(field) {
 
 	// sort() sorts in-place, so we need to create a copy with slice(0)
 	return game_ids.slice(0).sort(function(a, b) {
-		if (field == 'players') {
+		if (field == 'best') {
+			return -(serverScore(serverData.servers[a]) - serverScore(serverData.servers[b]));
+		}
+		else if (field == 'players') {
 			var playersA = serverData.servers[a].players;
 			var playersB = serverData.servers[b].players;
 			return (playersA ? playersA.length : 0) - (playersB ? playersB.length : 0);
