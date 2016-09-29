@@ -25,9 +25,13 @@
 	}
 
 	// Get the latest data
-	$result = $db->query('SELECT lastupdate, last_start_update, data FROM factorioservers')
-		or die('Database error 387.');
-	list($lastupdate, $last_start_update, $data) = $result->fetch_row();
+	$result = $db->query('SELECT lastupdate FROM factorioservers') or die('Database error 6279237');
+	$lastupdate = $result->fetch_row()[0];
+
+	if ($lastupdate == $_GET['lastupdate']) die('no update');
+
+	$result = $db->query('SELECT data FROM factorioservers') or die('Database error 387.');
+	$data = $result->fetch_row()[0];
 
 	// Check if the data needs updating
 	$now = microtime(true);

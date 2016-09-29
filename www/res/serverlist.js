@@ -583,6 +583,18 @@ function getScrollPosition() {
 }
 
 function newServerData(data) {
+	if (data.length < 40) {
+		if (serverData === false) {
+			error("Server returned no data.");
+		}
+		else {
+			// No update since last check
+			var time = getRandom(Settings.updateTime[0] * 1000, Settings.updateTime[1] * 1000);
+			setTimeout(getNewServerData, time / 3);
+		}
+		return;
+	}
+
 	serverData = JSON.parse(data);
 
 	game_ids = [];
@@ -603,6 +615,7 @@ function newServerData(data) {
 		time *= 1.5;
 	}
 
+	lastUpdate = serverData.lastupdate;
 	setTimeout(getNewServerData, time);
 }
 
@@ -719,6 +732,8 @@ else {
 	lastSearchSettings = {};
 }
 
+lastUpdate = 0;
+
 // Bind fields
 onhashchange = updateDisplay;
 $("#search").onkeyup = $("#search").onchange = queueDisplayUpdate;
@@ -735,6 +750,6 @@ $("#allowUserVerif").onchange = $("#allowUserVerif").onkeyup = $("#allowUserVeri
 // Load the data (this also triggers auto-update in newServerData)
 $("#status").innerHTML = "<strong>Loading data...</strong>";
 (getNewServerData = function() {
-	aGET('get-games.php', newServerData, error);
+	aGET('get-games.php?lastupdate=' + lastUpdate, newServerData, error);
 })();
 
