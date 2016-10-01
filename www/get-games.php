@@ -24,38 +24,8 @@
 		$db->query('INSERT INTO factorioservers (lastupdate) VALUES(0)') or die('Database error 418');
 	}
 
-	// Get the latest data
-	$result = $db->query('SELECT lastupdate FROM factorioservers') or die('Database error 6279237');
-	$lastupdate = $result->fetch_row()[0];
-
-	if ($lastupdate == $_GET['lastupdate']) die('no update');
-
-	$result = $db->query('SELECT data FROM factorioservers') or die('Database error 387.');
-	$data = $result->fetch_row()[0];
-
-	// Check if the data needs updating
-	$now = microtime(true);
-	if ($lastupdate < $now - $cache_duration && $last_start_update < $now - $update_timeout) {
-		list($success, $lastupdate_new, $data_new) = serverlist_update();
-		if ($success) {
-			$lastupdate = $lastupdate_new;
-			$data = $data_new;
-		}
-	}
-
-	try {
-		$record = $geoip->city($_SERVER['REMOTE_ADDR']);
-		$latlon = '"' . $record->location->latitude . ',' . $record->location->longitude . '"';
-	}
-	catch (Exception $e) {
-		$latlon = 'false';
-	}
-
-	die('{"lastupdate":' . $lastupdate . ',"servers":' . $data . ',"yourlocation":' . $latlon . '}');
-
-	function serverlist_update() {
-		global $db, $factorio_url, $factorio_username, $factorio_token, $geoip;
-
+	// Are we supposed to update or return the data?
+	if (!isset($_SERVER['REMOTE_ADDR']) || isset($_GET[$secretUpdateParameter])) {
 		// Mark in the database that we're updating already
 		$db->query("UPDATE factorioservers
 			SET last_start_update = " . microtime(true)) or die('Database error 7159');
@@ -104,6 +74,50 @@
 		$db->query("UPDATE factorioservers SET data = '" . $db->escape_string($json) . "', "
 			. "lastupdate = " . $lastupdate) or die('Database error 1958');
 
-		return [true, $lastupdate, $json];
+		$db->query('create table if not exists '
+			. 'modlog(id int primary key auto_increment, name varchar(255), version varchar(15), gameversion varchar(10), timestamp int unsigned, freq int unsigned default 0)')
+			or die('Database error 68184');
+		// TODO: add index on name
+
+		foreach ($servers as $game_id=>$server) {
+			if (isset($server['players']) && count($server['players']) > 1 && isset($server['mods']) && isset($server['application_version'])) {
+				$gameversion = $db->escape_string($server['application_version']['game_version']);
+				foreach ($server['mods'] as $mod) {
+					if ($mod['name'] == 'base') continue;
+					$name = $db->escape_string($mod['name']);
+					$version = $db->escape_string($mod['version']);
+					$result = $db->query("SELECT id FROM modlog WHERE name = '$name' AND version = '$version' AND gameversion = '$gameversion' AND timestamp > " . (time() - 3600 * 12));
+					if ($result->num_rows == 0) {
+						$db->query('INSERT INTO modlog(name, version, gameversion, timestamp) '
+							. "VALUES('$name', '$version', '$gameversion', " . round($lastupdate) . ')');
+						echo "new mod: $name,$version,4game:$gameversion\n";
+					}
+					else {
+						$playercount = count($server['players']);
+						$db->query("UPDATE modlog SET freq = freq + $playercount WHERE name = '$name' AND version = '$version' AND gameversion = '$gameversion' AND timestamp > " . (time() - 3600 * 12));
+					}
+				}
+			}
+		}
+
+		die('fin');
 	}
+
+	$result = $db->query('SELECT lastupdate FROM factorioservers') or die('Database error 6279237');
+	$lastupdate = $result->fetch_row()[0];
+
+	if ($lastupdate == $_GET['lastupdate']) die('no update');
+
+	$result = $db->query('SELECT data FROM factorioservers') or die('Database error 387.');
+	$data = $result->fetch_row()[0];
+
+	try {
+		$record = $geoip->city($_SERVER['REMOTE_ADDR']);
+		$latlon = '"' . $record->location->latitude . ',' . $record->location->longitude . '"';
+	}
+	catch (Exception $e) {
+		$latlon = 'false';
+	}
+
+	die('{"lastupdate":' . $lastupdate . ',"servers":' . $data . ',"yourlocation":' . $latlon . '}');
 

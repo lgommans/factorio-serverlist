@@ -16,6 +16,118 @@
 				<span class=title>Server List</span> <span class=unofficial>(unofficial)</span>
 			</header>
 
+			<section id=pagechoice class=part>
+				<div id=chooseServerlist class=selected>View serverlist</div>
+				&nbsp;
+				<div id=chooseDownloadMods>Download all popular mods</div>
+			</section>
+
+			<section id=downloadmods class=part>
+				<span class=info>Get all popular mods in one download</span>
+
+				<div id=versionselector></div>
+				<div id=modpack_settings>
+					Limit modpack size to <input type=number step='any' style='width: 50px;' id='modpack_maxsize' value=500> MB
+					<input type=button value='Update list' onclick="calculateModpack();"><br>
+
+					<span style='color: #ccc;'>The maximum size (with all <span id='modpack_count'></span> mods) is <span id='modpack_allModsSize'></span></span><br>
+					<br>
+					<input type=button value='Download now' onclick="downloadModpack(this);">
+					<br><br>
+				</div>
+				<div id=modpack_output></div>
+				<div id=modpack_iframe></div>
+				<div id=status2></div>
+			</section>
+
+			<footer id="modpack_about" class=part>
+				<h3>About the mod pack (FAQ)</h3>
+
+				<p><strong>Why can I not join <i>all</i> servers with the mod pack?</strong></p>
+
+				<p>
+				The number of servers currently online that you can join with the mod pack is less than 100%
+				for two reasons: not all mods are available on the mod portal and the system cannot look into
+				the future to download what will be popular when you open the page.
+				</p>
+
+				<p>
+				You might also notice that the number of servers you can join does not change when you limit
+				the mod pack size. This is because the mod pack consists of <i>all</i> mods that were popular
+				(used by 2+ players) at any point in the past week. Many of those mods will not be used by 2+
+				players at this moment.
+				</p>
+
+				<p><strong>How is the mod pack compiled?</strong></p>
+
+				<p>
+				Factorio servers are tracked 24/7. For every server with more than 1 player, its mods are
+				added to a list. This keeps track of popularity. Now and then it downloads mods from the mod
+				portal that it doesn't have yet.
+				</p>
+
+				<p>
+				The mod pack you download is a zip file with all these mods. Any mods that are no longer
+				popular are not included in the mod pack. Popularity is measured over 7 days.
+				</p>
+
+				<p><strong>Why only track servers with 2+ players?</strong></p>
+				
+				<p>
+				It only includes servers with 2 players because empty servers are definitely not popular
+				and 1 player might be the owner trying out his weird mod and is apparently also not popular.
+				</p>
+
+				<p><strong>Why only download small mods by default?</strong></p>
+
+				<p>
+				The big ones account for 60% of the size but are used on only 5% of the servers.
+				(These numbers are very rough estimates.)
+				</p>
+
+				<p><strong>How does it generate dynamic zip files?</strong></p>
+
+				<p>
+				I'm glad you asked! I actually spent a few hours reading the official for ZIP file format
+				documentation. The document dates back to 1989 and maintains MS DOS and Amiga. Lots of fun.
+				</p>
+
+				<p>
+				Turns out, you can create zip files on the fly with no need to write a temporary file to
+				disk, nor keep the whole archive in memory. Aside from about 64 bytes per file, there is
+				no state to remember. Since I have the list of files already (this is in the database of
+				mods), I only need to read each file part by part and forward it to the user. Still not
+				terribly efficient, caching the most popular variants would be smarter, but it's a very
+				good trade-off between complexity and efficiency.
+				</p>
+
+				<p>
+				There are very few pieces of software that need this and the only library that I could find
+				for PHP had some issues, so I looked up the spec and wrote my own.
+				</p>
+
+				<p><strong>What is wrong with the date/time in the zip?</strong></p>
+
+				<p>
+				Because of the highly advanced dynamic zip file generation&reg;, I had to write my own zip
+				file generator. Turns out, zip files store their date and time in the same format as MS DOS.
+				That is about as ridiculous as it sounds. I chose to skip that part.
+				</p>
+
+				<p>
+				Oh and I don't store mods' metadata, so I couldn't fill the field in regardless.
+				</p>
+
+				<p><strong>How big is this mod database?</strong></p>
+
+				<p>
+				At the moment of writing, two days into collecting mods, I have about 1150 mods, taking
+				2.5GB. Not a lot of new mods appear anymore. This is a bit bigger than expected, but it's
+				not a problem... yet. Oh and the whole thing was monitored, rate-limited and ran at
+				off-hours, so nobody had interference from me downloading this &lt;3.
+				</p>
+			</footer>
+
 			<nav id=filters class=part>
 				<noscript>
 					<h1>This page uses Javascript to dynamically search, filter and update the data.</h1>

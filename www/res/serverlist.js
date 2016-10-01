@@ -43,6 +43,10 @@ function getRandom(min, max) {
 	return Math.round(Math.random() * (max - min)) + min;
 }
 
+function getScrollPosition() {
+	return document.documentElement.scrollTop || document.body.scrollTop;
+}
+
 function searchFilter(server) {
 	// Returns true if current search setting would hide this server
 	if ($("#search").value == '') {
@@ -475,7 +479,10 @@ function queueUpdate(game_ids) {
 			return;
 		}
 	}
-	queueUpdateTimeout = setTimeout(queueUpdate, 67);
+
+	var visible = $("main").style.display != 'none';
+
+	queueUpdateTimeout = setTimeout(queueUpdate, 67 * (visible ? 1 : 5));
 }
 
 function updateDisplay() {
@@ -578,8 +585,242 @@ function error(data) {
 	$("#status").innerHTML = 'Error loading data: ' + data;
 }
 
-function getScrollPosition() {
-	return document.documentElement.scrollTop || document.body.scrollTop;
+function showModDownloader() {
+	history.pushState(null, 'Download Factorio mods pack', '#downloadMods');
+
+	$("main").style.display = 'none';
+	$("#status").style.display = 'none';
+	$("#filters").style.display = 'none';
+	$("#downloadmods").style.display = 'block';
+	$("#modpack_about").style.display = 'block';
+	$("#chooseDownloadMods").className = 'selected';
+	$("#chooseServerlist").className = '';
+
+	if (versions === false) {
+		$("#status2").innerHTML = 'Loading game versions...';
+		aGET('get-mods.php?versions', gotVersions);
+	}
+}
+
+function gotVersions(data) {
+	versions = JSON.parse(data);
+	var html = 'Select your game version:<br><select id=version>';
+	for (var i in versions) {
+		html += '<option>' + escapeHtml(versions[i]) + '</option>';
+	}
+	html += '</select> '
+		+ '<input type=button onclick="selectVersion();" value="Select">';
+	$("#versionselector").innerHTML = html;
+	$("#status2").innerHTML = '';
+}
+
+function selectVersion() {
+	var version = $("#version").options[$("#version").selectedIndex].value;
+	$("#status2").innerHTML = 'Loading available mods for your version...';
+	aGET('get-mods.php?version=' + escape(version), gotMods);
+}
+
+function gotMods(data) {
+	data = JSON.parse(data);
+	mods = data[0];
+	unavailableMods = data[1];
+
+	unavailableMods.sort(function(a, b) {
+		if (a[0] == b[0]) return 0;
+
+		if (a[0].toLowerCase() < b[0].toLowerCase()) {
+			return -1;
+		}
+
+		return 1;
+	});
+
+	$("#status2").innerHTML = '';
+	$("#modpack_output").style.display = 'block';
+	$("#modpack_settings").style.display = 'block';
+
+	var totalModpackSize = 0;
+	for (var i in mods) {
+		totalModpackSize += mods[i][2];
+	}
+
+	$("#modpack_count").innerHTML = mods.length;
+	$("#modpack_allModsSize").innerHTML = KBorMBorGB(totalModpackSize);
+	console.log(totalModpackSize);
+	$("#modpack_output").innerHTML = 'Calculating modpack contents...';
+
+	setTimeout(function() {
+		calculateModpack();
+	}, 100);
+}
+
+function KBorMBorGB(size) {
+	// size in bytes. Returns a string with the KB, MB or GB suffix.
+
+	if (size > 1024 * 1024 * 1024) {
+		return (Math.round(size / 1024 / 1024 / 1024 * 100) / 100) + 'GB';
+	}
+	return KBorMB(size);
+}
+
+function KBorMB(size) {
+	// size in bytes. Returns a string with the KB or MB suffix.
+
+	size /= 1024;
+	if (size >= 1000) {
+		if (size > 1000 * 10) {
+			return Math.round(size / 1024) + 'MB';
+		}
+		return (Math.round(size / 1024 * 10) / 10) + 'MB';
+	}
+	return Math.round(size) + 'KB';
+}
+
+function calculateModpack() {
+	var modpack = [];
+	var size = 0;
+	var maxsize = parseFloat($("#modpack_maxsize").value) * 1024 * 1024;
+
+	for (var i in mods) {
+		if (size >= maxsize) {
+			// If the modpack has reached the maximum size...
+			break;
+		}
+
+		if (mods[i][2] + size > maxsize) {
+			// Don't add this mod to the modpack if it would make the modpack oversized
+			continue;
+		}
+
+		// Add the next mod (the list of mods is sorted by inclusionScore).
+
+		modpack.push(mods[i]);
+		size += mods[i][2] + 140 + mods[i][0].length + mods[i][1].length; // +140 for the headers it will take in the ZIP file
+	}
+
+	var modCount = modpack.length;
+	modpack.sort(function(a, b) {
+		if (a[0] == b[0]) return 0;
+		return a[0].toLowerCase() < b[0].toLowerCase() ? -1 : 1;
+	});
+
+	// Check which servers we could join on the serverlist with this modpack
+	var version = $("#version").options[$("#version").selectedIndex].value;
+	var totalServers = 0;
+	var canJoinServers = 0;
+	var unjoinableServers = '';
+	for (var i in serverData.servers) {
+		var server = serverData.servers[i];
+		if (!server.application_version || server.application_version.game_version != version) {
+			// Wrong server version
+			continue;
+		}
+
+		if (!server.players || server.players.length <= 1 || server.mods.length <= 1) {
+			// Less than 2 players on this server or no mods installed (or only base mod)
+			continue;
+		}
+
+		var canJoin = true;
+		for (var i in server.mods) {
+			if (server.mods[i].name == 'base') {
+				continue;
+			}
+
+			var found = false;
+
+			for (var j in modpack) {
+				if (server.mods[i].name == modpack[j][0] && server.mods[i].version == modpack[j][1]) {
+					found = true;
+					break;
+				}
+			}
+
+			if (!found) {
+				canJoin = false;
+				if (server.has_password == 'false') {
+					unjoinableServers += '- For <i>' + escapeHtml(server.name) + '</i> we are missing ' + server.mods[i].name + ' v' + server.mods[i].version + '<br>';
+				}
+				break;
+			}
+		}
+
+		if (canJoin) {
+			canJoinServers++;
+		}
+		totalServers++;
+	}
+
+	var serverPercentage = Math.round(canJoinServers / totalServers * 100);
+
+	var notice = '';
+	if (unavailableMods.length > 0) {
+		notice += unavailableMods.length + ' popular mods are not available from the mod portal. ';
+	}
+
+	var html = '<strong>Your selected modpack will be '
+		+ KBorMBorGB(size) + ' with ' + modCount + ' mods.</strong><br>'
+		+ 'With this, you will be able to join ' + serverPercentage + '% (' + canJoinServers + '/' + totalServers
+		+ ') of the modded servers currently online (<a href="#modpack_missing">more info</a>). '
+		+ notice + '<br>Your modpack will contain the following mods:<br><br>';
+
+	for (var i in modpack) {
+		html += '- ' + escapeHtml(modpack[i][0])
+			+ ' <span class=modinfo>v' + escapeHtml(modpack[i][1])
+			+ ' (' + KBorMB(modpack[i][2]) + ', popularity: ' + modpack[i][3] + ')'
+			+ '</span><br>';
+	}
+
+	if (unavailableMods.length > 0) {
+		html += '<br id="modpack_missing"><strong>Missing mods</strong> (not available on mod portal)<br>';
+		var shownUnavailableMods = 0;
+
+		for (var i in unavailableMods) {
+			html += '- ' + escapeHtml(unavailableMods[i][0])
+				+ ' <span class=modinfo>v' + escapeHtml(unavailableMods[i][1])
+				+ ' (popularity: ' + unavailableMods[i][2] + ')</span><br>';
+
+			shownUnavailableMods++;
+		}
+	}
+
+	if (unjoinableServers.length > 0 || serverPercentage != 100) {
+		html += '<br><strong>Unjoinable public servers</strong><br>' + unjoinableServers;
+		if (serverPercentage != 100 && unjoinableServers.length == 0) {
+			html += 'None. All servers with unavailable or filtered mods have passwords.';
+		}
+		else if (totalServers - canJoinServers - unjoinableServers.split('<br>').length > 0) {
+			html += 'All other unjoinable servers are private (have a password).';
+		}
+	}
+
+	$("#modpack_output").innerHTML = html;
+}
+
+function downloadModpack(buttonElement) {
+	// Disable the button for 10 seconds
+	buttonElement.disabled = true;
+	setTimeout(function() {
+		buttonElement.disabled = false;
+	}, 1000 * 10);
+
+	var version = escape($("#version").options[$("#version").selectedIndex].value);
+	var maxsize = parseFloat($("#modpack_maxsize").value) * 1024 * 1024;
+	$("#modpack_iframe").innerHTML = '<iframe src="get-mods.php?dl&version=' + version + '&maxsize=' + maxsize + '"></iframe>';
+}
+
+function showServerlist() {
+	history.pushState(null, 'Factorio Serverlist', '#');
+
+	$("main").style.display = 'block';
+	$("#status").style.display = 'block';
+	$("#filters").style.display = 'block';
+	$("#downloadmods").style.display = 'none';
+	$("#chooseDownloadMods").className = '';
+	$("#chooseServerlist").className = 'selected';
+	$("#modpack_settings").style.display = 'none';
+	$("#modpack_output").style.display = 'none';
+	$("#modpack_about").style.display = 'none';
 }
 
 function newServerData(data) {
@@ -659,6 +900,15 @@ function queueDisplayUpdate() {
 	searchTimeout = setTimeout(updateDisplay, Settings.displayUpdateTimeout);
 }
 
+function hashChange() {
+	if (location.hash.substr(1,2) == 'id') {
+		updateDisplay();
+	}
+	else if (location.hash == '#downloadMods') {
+		showModDownloader();
+	}
+}
+
 randomizeGameIds = (function() {
 	/* Since Javascript cannot seed its random engine, this is necessary. The goal is to show
 	 * the servers in a random order for fairness, but between updates it should preserve
@@ -732,10 +982,17 @@ else {
 	lastSearchSettings = {};
 }
 
+// For get-games.php
 lastUpdate = 0;
 
+// All game versions we currently have mod packs for
+versions = false;
+
+// For the modpack generator
+mods = false;
+
 // Bind fields
-onhashchange = updateDisplay;
+onhashchange = hashChange;
 $("#search").onkeyup = $("#search").onchange = queueDisplayUpdate;
 $("#hidemods").onkeyup = $("#hidemods").onchange = queueDisplayUpdate;
 $("#nomods").onmouseup = $("#nomods").onchange = updateDisplay;
@@ -746,6 +1003,10 @@ $("#sort").onchange = updateDisplay;
 $("#onlyUserVerif").onchange = $("#onlyUserVerif").onkeyup = $("#onlyUserVerif").onmouseup = updateDisplay;
 $("#hideUserVerif").onchange = $("#hideUserVerif").onkeyup = $("#hideUserVerif").onmouseup = updateDisplay;
 $("#allowUserVerif").onchange = $("#allowUserVerif").onkeyup = $("#allowUserVerif").onmouseup = updateDisplay;
+$("#chooseDownloadMods").onclick = showModDownloader;
+$("#chooseServerlist").onclick = showServerlist;
+
+hashChange();
 
 // Load the data (this also triggers auto-update in newServerData)
 $("#status").innerHTML = "<strong>Loading data...</strong>";
