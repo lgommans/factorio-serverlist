@@ -1,8 +1,10 @@
 # Factorio Serverlist
 
-Unofficial serverlist for Factorio - version 2.1
+Unofficial serverlist and mod pack generator for Factorio - version 3.0
 
-**Features**
+(It was originally just a serverlist, now it also serves mods. Hence the name.)
+
+**Serverlist features**
 
 - Display countries and sort by closest server
 - Search by number of players, server version, mods (and versions),
@@ -12,15 +14,28 @@ Unofficial serverlist for Factorio - version 2.1
 - Sort by playing time, number of players online, uptime, etc.
 - It remembers your last search settings
 
+**Mod pack generator**
+
+Since version 3.0, a mod pack generator has been added. It is integrated into
+this project because it fits nicely in the web interface (no need for a
+separate website) and because it uses the serverlist data as well.
+
 ## Installing
 
-Clone the repository into your web server (PHP 5.4+) and modify www/config.php.
-You will need a MySQL/MariaDB database.
+You will need a MySQL/MariaDB database and a web server running PHP 5.4 or
+newer. Copy all the files in `www` into the desired web directory and modify
+`config.template.php`. After modifying, rename it to `config.php`.
 
-Setup is done automatically, just open the site.
+Database setup is done automatically. It uses two tables: `factorioservers`
+and `modlog`. Unless you have existing tables named that way, you don't need
+to create a new database.
 
-It uses only one database table called 'factorioservers', so you don't need to
-create a new database if you don't want to.
+The final step is to setup a cronjob for updating the serverlist and
+downloading mods. For the serverlist, either call get-games.php from the
+command line (causing `$_SERVER[REMOTE_ADDR]` to be unset) or call
+`get-games.php?secretUpdateParameter` (see `config.php` to configure the
+parameter). For the mod downloader, call `mod-downloader.php` from the command
+line.
 
 ## License
 
