@@ -132,6 +132,8 @@
 		header('Content-Length: ' . calculateFilesize(count($modpack), $filenameLengths, $totalFilesize));
 		header('Content-Disposition: attachment; filename="modpack-' . $_GET['version'] . '-' . date('Y-m-d') . '.zip"');
 
+		set_time_limit(0);
+
 		foreach ($modpack as $modhash=>$mod) {
 			outputFile("$moddir/$modhash.zip", "$mod[0]_$mod[1].zip");
 		}
