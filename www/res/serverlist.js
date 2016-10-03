@@ -646,7 +646,6 @@ function gotMods(data) {
 
 	$("#modpack_count").innerHTML = mods.length;
 	$("#modpack_allModsSize").innerHTML = KBorMBorGB(totalModpackSize);
-	console.log(totalModpackSize);
 	$("#modpack_output").innerHTML = 'Calculating modpack contents...';
 
 	setTimeout(function() {
