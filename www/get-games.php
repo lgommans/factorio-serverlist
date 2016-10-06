@@ -31,10 +31,6 @@
 			$moddir = false;
 		}
 
-		// Mark in the database that we're updating already
-		$db->query("UPDATE factorioservers
-			SET last_start_update = " . microtime(true)) or die('Database error 7159');
-
 		// Get the latest data
 		$url = $factorio_url . '?username=' . $factorio_username . '&token=' . $factorio_token;
 		$tmpservers = file_get_contents($url);
@@ -83,7 +79,7 @@
 				}
 			}
 			unset($servers[$game_id]['game_secret']); // This is currently useless info
-			unset($servers[$game_id]['mod_crc']); // This is currently useless info
+			unset($servers[$game_id]['mods_crc']); // This is currently useless info
 		}
 
 		$json = json_encode($servers);
