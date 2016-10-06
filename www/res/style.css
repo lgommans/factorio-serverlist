@@ -153,6 +153,10 @@ main strong, main .serverName, main .versionV {
 	color: #ff9f1c;
 }
 
+main #modsDownloadLink {
+	text-decoration: underline;
+}
+
 main .versionV {
 	font-weight: bold;
 }
@@ -173,6 +177,10 @@ main a {
 }
 
 main .modsexpandLink {
+	text-decoration: underline;
+}
+
+main .modsDownloadLink {
 	text-decoration: underline;
 }
 

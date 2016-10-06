@@ -1,5 +1,6 @@
 <?php 
 	require('config.php');
+	require('phpzipstream.php');
 
 	$moddir = 'mods';
 	if (!is_dir($moddir)) {
@@ -41,6 +42,24 @@
 			return 0;
 		});
 		die(json_encode($versions));
+	}
+
+	if (isset($_GET['dl']) && isset($_GET['game_id'])) {
+		header('Content-Type: application/zip');
+		header('Content-Disposition: attachment; filename="mods-for-gameid' . $_GET['game_id'] . '-on-' . date('Y-m-d') . '.zip"');
+
+		// This download should be smaller than a big mod pack so we won't bother with filesize calculation
+
+		foreach ($_POST['mod'] as $mod) {
+			$modhash = sha1($mod);
+			if (file_exists("$moddir/$modhash.zip")) {
+				outputFile("$moddir/$modhash.zip", str_replace('|', '_', $mod) . '.zip');
+			}
+		}
+
+		outputCentralDirectory();
+
+		exit;
 	}
 
 	if (!empty($_GET['version'])) {
@@ -100,8 +119,6 @@
 		die(json_encode([$mods, $unavailable]));
 	}
 	else {
-		require('phpzipstream.php');
-
 		$totalFilesize = 0; // The sum of all files' contents
 		$size = 0; // size is the variable that matches Javascript's method (to get the same results... or as close as possible with any intermediate database updates)
 		$filenameLengths = 0;

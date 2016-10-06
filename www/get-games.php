@@ -26,6 +26,11 @@
 
 	// Are we supposed to update or return the data?
 	if (!isset($_SERVER['REMOTE_ADDR']) || isset($_GET[$secretUpdateParameter])) {
+		if (!is_dir($moddir)) {
+			// Disable mod checking in this case
+			$moddir = false;
+		}
+
 		// Mark in the database that we're updating already
 		$db->query("UPDATE factorioservers
 			SET last_start_update = " . microtime(true)) or die('Database error 7159');
@@ -64,6 +69,17 @@
 				catch (Exception $e) {
 					$servers[$game_id]['country'] = '';
 					$servers[$game_id]['coords'] = '';
+				}
+			}
+			// Note which mods are available to download
+			if ($moddir && isset($server['mods'])) {
+				foreach ($server['mods'] as $key=>$mod) {
+					if ($mod['name'] == 'base') continue;
+
+					$modhash = sha1("$mod[name]|$mod[version]");
+					if (fexists("$moddir/$modhash.zip")) {
+						$servers[$game_id]['mods'][$key]['dl'] = 1;
+					}
 				}
 			}
 			unset($servers[$game_id]['game_secret']); // This is currently useless info
@@ -120,4 +136,19 @@
 	}
 
 	die('{"lastupdate":' . $lastupdate . ',"servers":' . $data . ',"yourlocation":' . $latlon . '}');
+
+	function fexists($filename) {
+		// This function is identical to file_exists() but with caching
+		global $fexistscache;
+
+		if (!isset($fexistscache)) {
+			$fexistscache = [];
+		}
+
+		if (!isset($fexistscache[$filename])) {
+			$fexistscache[$filename] = file_exists($filename);
+		}
+
+		return $fexistscache[$filename];
+	}
 

@@ -209,6 +209,34 @@ function addThousandSeparator(n) {
 	return separated.substr(1);
 }
 
+function dlMods(game_id) {
+	var html = '<iframe name=dlmods></iframe><form method=post target=dlmods id=submitModDownload action="get-mods.php?dl&game_id=' + game_id + '">';
+
+	var message = 'Not all mods could be included. These mods will be missing, either because they are not on the mod portal or because the mod was not popular enough to store on the server:\n';
+	var anyUndownloadable = false;
+	for (var mod in serverData.servers[game_id].mods) {
+		mod = serverData.servers[game_id].mods[mod];
+		if (mod.name == 'base') continue;
+
+		if (!mod.dl) {
+			message += '- ' + mod.name + ' v' + mod.version + '\n';
+			anyUndownloadable = true;
+		}
+		else {
+			html += '<input type=hidden name="mod[]" value="' + escapeHtml(mod.name + '|' + mod.version) + '">';
+		}
+	}
+
+	html += '<input type=submit style="display: none;">';
+
+	$("#modpack_iframe").innerHTML = html;
+	$("#submitModDownload").submit();
+
+	if (anyUndownloadable) {
+		alert(message);
+	}
+}
+
 function getServerDiv(server) {
 	// Returns the HTML to be rendered for this server
 
@@ -282,18 +310,29 @@ function getServerDiv(server) {
 		var modsListLength = 0;
 		var comma = '';
 		var link = '';
+		var showDownloadLink = false;
 		for (var i in server.mods) {
 			if (server.mods[i].name == 'base') continue;
+
 			link = '<a href="https://mods.factorio.com/?q=' + escape(server.mods[i].name)
 				+ '" target="_blank">';
+
 			modstring += comma + link + escapeHtml(server.mods[i].name) + '</a>'
 				+ "<span class='modversion id" + game_id + "' style='display: none;'> "
 				+ escapeHtml(server.mods[i].version) + "</span>";
+
 			modsListLength += (comma + escapeHtml(server.mods[i].name)).length;
+
 			if (modsListLength > Settings.maxModListLength && expandClassTriggered == false) {
 				modstring += "<span class='modsexpand id" + game_id + "' style='display: none;'>";
 				expandClassTriggered = true;
 			}
+
+			if (server.mods[i].dl) {
+				// This mod is downloadable from the server
+				showDownloadLink = true;
+			}
+
 			comma = ', ';
 		}
 		if (expandClassTriggered) {
@@ -302,6 +341,9 @@ function getServerDiv(server) {
 		}
 		modstring += " <a href='#id" + game_id + "' class='modsexpandLink id" + game_id + "' "
 			+ "onclick='modsExpand(" + game_id + "); return false;'>[expand]</a>";
+		if (showDownloadLink) {
+			modstring += " <a class=modsDownloadLink href='javascript:dlMods(" + game_id + ");'>[download]</a>";
+		}
 	}
 
 	var div = document.createElement('div');
